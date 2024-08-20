@@ -3,7 +3,7 @@ import Knogra from "./components/Knogra";
 
 function App() {
   return (
-    <div className="flex h-full">
+    <div className="flex h-full overflow-hidden">
       <div className="w-2/3 bg-orange-400 h-screen">
         <Knogra />
       </div>
