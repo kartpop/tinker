@@ -64,7 +64,7 @@ export default function Argonk() {
             key={index}
             className={`p-4 m-4 ${
               message.src === "user"
-                ? "w-4/5 ml-auto bg-orange-300 rounded-lg"
+                ? "w-4/5 ml-auto bg-orange-200 rounded-lg"
                 : ""
             }`}
           >
@@ -74,12 +74,12 @@ export default function Argonk() {
           </div>
         ))}
       </div>
-      <div className="flex-shrink-0 flex items-center">
+      <div className="flex-shrink-0 flex items-center m-2">
         <textarea
           rows={1}
           value={prompt}
           onChange={handlePromptChange}
-          className="w-full p-2 border-2 bg-orange-50 border-gray-300 focus:border-orange-500 focus:outline-none resize-none h-auto max-h-36 overflow-y-auto"
+          className="w-full p-2 border-2 border-gray-300 focus:border-orange-300 focus:outline-none resize-none h-auto max-h-36 overflow-y-auto"
           placeholder="Type a message..."
           style={{ height: "auto" }}
         />
