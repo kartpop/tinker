@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
 
+type message = {
+  src: string;
+  text: string;
+};
+
 export default function Argonk() {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [prompt, setPrompt] = useState("");
-  // const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<message[]>([]);
 
   useEffect(() => {
     const ws = new WebSocket("ws://localhost:8080/ws");
@@ -14,7 +19,10 @@ export default function Argonk() {
 
     ws.onmessage = (event) => {
       console.log("Received data:", event.data);
-      // setMessages((prevMessages) => [...prevMessages, event.data]);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { src: "agent", text: event.data },
+      ]);
     };
 
     ws.onclose = () => {
@@ -39,6 +47,10 @@ export default function Argonk() {
 
   const handleSendPrompt = () => {
     if (socket && prompt !== "") {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { src: "user", text: prompt },
+      ]);
       socket.send(prompt);
       setPrompt("");
     }
@@ -47,55 +59,20 @@ export default function Argonk() {
   return (
     <div className="flex flex-col h-full">
       <div className="flex-grow overflow-y-auto">
-        <div className="w-4/5 bg-orange-300 rounded-lg p-4 m-4 ml-auto">
-          <p className="text-gray-800">
-            A prompt which is very long. Tell me something about the Amazon
-            rainforest. What percentage of it lies in Brazil. Access detailed
-            rooftop data based on Google's expansive mapping and computing
-            resources to help estimate renewable rooftop solar energy potential
-            and savings.
-          </p>
-        </div>
-
-        <div className="p-4 m-4">
-          <p className="text-gray-800">
-            A prompt which is very long. Tell me something about the Amazon
-            rainforest. What percentage of it lies in Brazil. Access detailed
-            rooftop data based on Google's expansive mapping and computing
-            resources to help estimate renewable rooftop solar energy potential
-            and savings.
-          </p>
-        </div>
-
-        <div className="w-4/5 bg-orange-300 rounded-lg p-4 m-4 ml-auto">
-          <p className="text-gray-800">
-            A prompt which is very long. Tell me something about the Amazon
-            rainforest. What percentage of it lies in Brazil. Access detailed
-            rooftop data based on Google's expansive mapping and computing
-            resources to help estimate renewable rooftop solar energy potential
-            and savings.
-          </p>
-        </div>
-
-        <div className="w-4/5 bg-orange-300 rounded-lg p-4 m-4 ml-auto">
-          <p className="text-gray-800">
-            A prompt which is very long. Tell me something about the Amazon
-            rainforest. What percentage of it lies in Brazil. Access detailed
-            rooftop data based on Google's expansive mapping and computing
-            resources to help estimate renewable rooftop solar energy potential
-            and savings.
-          </p>
-        </div>
-
-        <div className="p-4 m-4">
-          <p className="text-gray-800">
-            A prompt which is very long. Tell me something about the Amazon
-            rainforest. What percentage of it lies in Brazil. Access detailed
-            rooftop data based on Google's expansive mapping and computing
-            resources to help estimate renewable rooftop solar energy potential
-            and savings.
-          </p>
-        </div>
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            className={`p-4 m-4 ${
+              message.src === "user"
+                ? "w-4/5 ml-auto bg-orange-300 rounded-lg"
+                : ""
+            }`}
+          >
+            <p className="text-gray-800" style={{ wordWrap: "break-word" }}>
+              {message.text}
+            </p>
+          </div>
+        ))}
       </div>
       <div className="flex-shrink-0 flex items-center">
         <textarea
