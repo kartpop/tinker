@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 
 class Question(BaseModel):
-    text: str
+    question: str
 
 
 def ask_question(question: str) -> str:
@@ -23,4 +23,4 @@ app = FastAPI()
 
 @app.post("/ask")
 async def ask(q: Question):
-    return {"response": ask_question(q.text)}
+    return {"response": ask_question(q.question)}
