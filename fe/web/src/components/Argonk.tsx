@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 type message = {
   src: string;
@@ -51,7 +53,8 @@ export default function Argonk() {
         ...prevMessages,
         { src: "user", text: prompt },
       ]);
-      socket.send(prompt);
+      socket.send(`If response has sections, headings, bullet points etc. respond in markdown
+         format, else respond in plain text. Prompt: ${prompt}`);
       setPrompt("");
     }
   };
@@ -69,7 +72,27 @@ export default function Argonk() {
             }`}
           >
             <p className="text-gray-800" style={{ wordWrap: "break-word" }}>
-              {message.text}
+              <ReactMarkdown
+                children={message.text}
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  h1: (props) => (
+                    <h1 className="text-3xl font-bold" {...props} />
+                  ),
+                  h2: (props) => (
+                    <h2 className="text-2xl font-semibold" {...props} />
+                  ),
+                  h3: (props) => (
+                    <h3 className="text-xl font-medium" {...props} />
+                  ),
+                  p: (props) => <p className="text-base" {...props} />,
+                  ul: (props) => <ul className="list-disc ml-5" {...props} />,
+                  ol: (props) => (
+                    <ol className="list-decimal ml-5" {...props} />
+                  ),
+                  // Add other markdown elements as needed
+                }}
+              />
             </p>
           </div>
         ))}
