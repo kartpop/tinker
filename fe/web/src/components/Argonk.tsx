@@ -75,7 +75,7 @@ export default function Argonk() {
               <ReactMarkdown
                 children={message.text}
                 remarkPlugins={[remarkGfm]}
-                components={{
+                components={{ 
                   h1: (props) => (
                     <h1 className="text-3xl font-bold" {...props} />
                   ),
