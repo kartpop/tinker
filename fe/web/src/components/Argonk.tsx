@@ -5,6 +5,7 @@ import remarkGfm from "remark-gfm";
 type message = {
   src: string;
   text: string;
+  ref?: string | null;
 };
 
 export default function Argonk() {
@@ -20,11 +21,23 @@ export default function Argonk() {
     };
 
     ws.onmessage = (event) => {
-      console.log("Received data:", event.data);
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { src: "agent", text: event.data },
-      ]);
+      console.log("Received message from agent:", event.data);
+
+      try {
+        const data = JSON.parse(event.data);
+        const { response, wiki_title } = data;
+        // const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(
+        //   wiki_title
+        // )}`;
+        const wikiUrl = `https://en.wikipedia.org/wiki/${wiki_title.replace(/ /g, "_")}`;
+
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { src: "agent", text: response, ref: wikiUrl },
+        ]);
+      } catch (error) {
+        console.error("Failed to parse message data:", error);
+      }
     };
 
     ws.onclose = () => {
@@ -53,10 +66,11 @@ export default function Argonk() {
         ...prevMessages,
         { src: "user", text: prompt },
       ]);
-      socket.send(`If response has sections, headings, bullet points etc. respond in markdown
-         format, else respond in plain text. Prompt: ${prompt}`);
+      socket.send(prompt);
       setPrompt("");
     }
+
+    console.log("Prompt sent:", prompt);
   };
 
   return (
@@ -75,7 +89,7 @@ export default function Argonk() {
               <ReactMarkdown
                 children={message.text}
                 remarkPlugins={[remarkGfm]}
-                components={{ 
+                components={{
                   h1: (props) => (
                     <h1 className="text-3xl font-bold" {...props} />
                   ),
@@ -94,6 +108,18 @@ export default function Argonk() {
                 }}
               />
             </p>
+            {message.ref && (
+              <div>
+                <a
+                  href={message.ref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 text-sm break-words hover:underline"
+                >
+                  {message.ref}
+                </a>
+              </div>
+            )}
           </div>
         ))}
       </div>

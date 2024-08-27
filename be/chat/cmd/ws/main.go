@@ -33,8 +33,12 @@ func websocketHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Message received: %s", p)
 
 		response := askLlm(string(p))
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			log.Fatalf("Error encoding response data: %v", err)
+		}
 
-		err = conn.WriteMessage(messageType, []byte(response))
+		err = conn.WriteMessage(messageType, jsonResponse)
 		if err != nil {
 			log.Println("Write:", err)
 			break
@@ -47,10 +51,11 @@ type RequestData struct {
 }
 
 type ResponseData struct {
-	Response string `json:"response"`
+	Response  string `json:"response"`
+	WikiTitle string `json:"wiki_title"`
 }
 
-func askLlm(question string) string {
+func askLlm(question string) ResponseData {
 	url := "http://localhost:8000/ask"
 
 	requestData := RequestData{
@@ -79,7 +84,7 @@ func askLlm(question string) string {
 		log.Fatalf("Error decoding response data: %v", err)
 	}
 
-	return responseData.Response
+	return responseData
 }
 
 func main() {
