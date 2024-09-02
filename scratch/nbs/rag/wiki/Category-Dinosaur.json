@@ -1,0 +1,65 @@
+{
+  "batchcomplete": "",
+  "limits": { "categorymembers": 500 },
+  "query": {
+    "categorymembers": [
+      { "pageid": 8311, "ns": 0, "title": "Dinosaur" },
+      { "pageid": 1070621, "ns": 0, "title": "Dinosaur classification" },
+      { "pageid": 10319435, "ns": 100, "title": "Portal:Dinosaurs" },
+      { "pageid": 31102995, "ns": 0, "title": "Outline of dinosaurs" },
+      {
+        "pageid": 74223457,
+        "ns": 0,
+        "title": "Attenborough and the Giant Dinosaur"
+      },
+      { "pageid": 3410, "ns": 0, "title": "Bird" },
+      { "pageid": 174609, "ns": 0, "title": "Chicxulub crater" },
+      {
+        "pageid": 44503418,
+        "ns": 0,
+        "title": "Cretaceous–Paleogene extinction event"
+      },
+      { "pageid": 41707879, "ns": 0, "title": "Glossary of dinosaur anatomy" },
+      {
+        "pageid": 54226283,
+        "ns": 0,
+        "title": "List of non-avian dinosaur species preserved with evidence of feathers"
+      },
+      { "pageid": 24865137, "ns": 0, "title": "Opisthotonic death pose" },
+      { "pageid": 6763404, "ns": 0, "title": "Origin of birds" },
+      { "pageid": 25790373, "ns": 0, "title": "Ornithoscelida" },
+      { "pageid": 6040372, "ns": 0, "title": "Physiology of dinosaurs" },
+      { "pageid": 23270773, "ns": 0, "title": "Phytodinosauria" },
+      { "pageid": 12284053, "ns": 0, "title": "Protobird" },
+      {
+        "pageid": 45115448,
+        "ns": 14,
+        "title": "Category:Dinosaurs by geologic time unit"
+      },
+      {
+        "pageid": 25145461,
+        "ns": 14,
+        "title": "Category:Dinosaur-related lists"
+      },
+      {
+        "pageid": 36021605,
+        "ns": 14,
+        "title": "Category:Dinosaurs by location"
+      },
+      {
+        "pageid": 46952560,
+        "ns": 14,
+        "title": "Category:Dinosaur paleontology"
+      },
+      {
+        "pageid": 59591580,
+        "ns": 14,
+        "title": "Category:Dinosaurs in popular culture"
+      },
+      { "pageid": 46952631, "ns": 14, "title": "Category:Dinosaur taxonomy" },
+      { "pageid": 3499546, "ns": 14, "title": "Category:Ornithischians" },
+      { "pageid": 3499555, "ns": 14, "title": "Category:Saurischians" },
+      { "pageid": 2370358, "ns": 14, "title": "Category:Dinosaur stubs" }
+    ]
+  }
+}
