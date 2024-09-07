@@ -12,7 +12,7 @@ services:
       - 8088:8088
       - 50051:50051
     volumes:
-      - weaviate_data:/var/lib/weaviate
+      - dinosaur_page:/var/lib/weaviate
     restart: on-failure:0
     environment:
       QUERY_DEFAULTS_LIMIT: 25
@@ -22,4 +22,9 @@ services:
       ENABLE_API_BASED_MODULES: "true"
       CLUSTER_HOSTNAME: "node1"
 volumes:
-  weaviate_data:
+  dinosaur_page: 
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /aux/src/tinker/scratch/nbs/rag/wiki/api/weaviate_data
