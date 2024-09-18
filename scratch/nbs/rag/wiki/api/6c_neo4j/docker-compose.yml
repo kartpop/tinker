@@ -1,0 +1,22 @@
+services:
+  neo4j:
+    image: neo4j:5.23.0
+    ports:
+      - 7474:7474
+      - 7687:7687
+    environment:
+      NEO4J_AUTH: neo4j/neo4jpass
+    volumes:
+      - 6c_neo4j:/data
+    healthcheck:
+      test: curl --fail http://localhost:7474 || exit 1
+      interval: 10s
+      timeout: 1s
+      retries: 10
+volumes:
+  6c_neo4j:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /aux/src/tinker/scratch/nbs/rag/wiki/api/6c_neo4j/neo4j_data
