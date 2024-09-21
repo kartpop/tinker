@@ -1,0 +1,10 @@
+# Ignore everything in these directories except the placeholder .gitkeep file so that git can track the directory
+# docker cannot create empty directories, so we need to add a placeholder file to keep the directory in git
+neo4j/*
+!neo4j/.gitkeep
+
+weaviate/*
+!weaviate/.gitkeep
+
+elasticsearch/*
+!elasticsearch/.gitkeep
