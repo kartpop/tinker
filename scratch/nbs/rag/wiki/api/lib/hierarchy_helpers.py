@@ -1,4 +1,8 @@
-def get_hierarchy_by_path(page_hierarchy, path):
+def get_sub_hierarchy_from_path(page_hierarchy, path):
+    """
+    Get sub-hierarchy by path from the page hierarchy.
+    """
+
     def get_hierarchy_by_path_recursive(hierarchy, sections):
         # Base case: if no more sections to traverse, return the current level
         if not sections:
@@ -25,7 +29,10 @@ def get_hierarchy_by_path(page_hierarchy, path):
     return get_hierarchy_by_path_recursive(page_hierarchy, sections)
 
 
-def extract_chunks(chunks_hierarchy):
+def extract_chunks_from_hierarchy(chunks_hierarchy):
+    """
+    Extract all chunk IDs from the hierarchy.
+    """
     # Initialize an empty list to store chunk IDs
     chunks_list = []
 
@@ -46,7 +53,10 @@ def extract_chunks(chunks_hierarchy):
     return chunks_list
 
 
-def replace_chunk_ids_with_content(chunk_hierarchy, chunk_docs):
+def create_context_text_from_hierarchy(chunk_hierarchy, chunk_docs):
+    """
+    Create context text from the chunk hierarchy and chunk contents.
+    """
     # Create a mapping of chunk IDs to document content
     chunk_id_to_content = {doc.id: doc.content for doc in chunk_docs}
 

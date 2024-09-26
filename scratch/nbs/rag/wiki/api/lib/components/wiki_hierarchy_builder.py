@@ -1,11 +1,21 @@
 from typing import List
 from haystack import Document
 from haystack import component
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from wiki_hierarchy import WikiHierarchy
 
 
 @component
-class HierarchyBuilder:
+class WikiHierarchyBuilder:
+    def __init__(self, neo4j_uri: str, neo4j_username: str, neo4j_password: str):
+        self.neo4j_uri = neo4j_uri
+        self.neo4j_username = neo4j_username
+        self.neo4j_password = neo4j_password
+
     def filter_unique_titles(self, documents: List[Document]) -> List[Document]:
         seen_titles = set()
         unique_documents = []
@@ -22,11 +32,13 @@ class HierarchyBuilder:
 
         sec_hier, chunk_hier = dict(), dict()
 
-        wiki_hierarchy = WikiHierarchy("bolt://localhost:7687", "neo4j", "neo4jpass")
+        wiki_hierarchy = WikiHierarchy(
+            self.neo4j_uri, self.neo4j_username, self.neo4j_password
+        )
         for doc in unique_title_docs:
             title, sh, ch = wiki_hierarchy.get_hierarchy(doc.id)
             sec_hier[title] = sh
             chunk_hier[title] = ch
         wiki_hierarchy.close()
 
-        return sec_hier, chunk_hier
+        return {"sections_hierarchy": sec_hier, "chunks_hierarchy": chunk_hier}
