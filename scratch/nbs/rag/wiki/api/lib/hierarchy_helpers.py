@@ -21,10 +21,7 @@ def get_sub_hierarchy_from_path(page_hierarchy, path):
         # If the section is not found, return None
         return None
 
-    # Split the path
-    nodes = path.split(" -> ")
-    # Remove the first element (title node)
-    sections = nodes[1:]
+    sections = path[1:] # Skip the first element which is the page title
     # Call the recursive function
     return get_hierarchy_by_path_recursive(page_hierarchy, sections)
 

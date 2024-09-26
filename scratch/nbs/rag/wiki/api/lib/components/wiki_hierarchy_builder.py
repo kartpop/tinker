@@ -32,13 +32,13 @@ class WikiHierarchyBuilder:
 
         sec_hier, chunk_hier = dict(), dict()
 
-        wiki_hierarchy = WikiHierarchy(
+        wiki_hierarchy_driver = WikiHierarchy(
             self.neo4j_uri, self.neo4j_username, self.neo4j_password
         )
         for doc in unique_title_docs:
-            title, sh, ch = wiki_hierarchy.get_hierarchy(doc.id)
+            title, sh, ch = wiki_hierarchy_driver.get_hierarchy(doc.id)
             sec_hier[title] = sh
             chunk_hier[title] = ch
-        wiki_hierarchy.close()
+        wiki_hierarchy_driver.close()
 
         return {"sections_hierarchy": sec_hier, "chunks_hierarchy": chunk_hier}
