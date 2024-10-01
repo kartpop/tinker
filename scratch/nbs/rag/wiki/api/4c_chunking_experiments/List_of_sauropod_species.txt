@@ -1,0 +1,40 @@
+Sauropoda is a clade of dinosaurs that consists of roughly 300 species of large, long-necked herbivores and includes the largest terrestrial animals ever to exist. The first sauropod species were named in 1842 by Richard Owen, though at the time, he regarded them as unusual crocodilians. Sauropoda was named in 1878 by Othniel Marsh.
+
+Scope
+For historical value, this list includes every sauropod species that has been formally named, regardless of whether the species is currently considered to be valid. Invalid species (i.e., species that are regarded as dubious or as a junior synonym of another species) are given a darker gray background.
+
+The precise definition of Sauropoda is disputed. One proposed dividing line is to consider as sauropods all species more closely related to derived sauropods than Melanorosaurus, one of the most sauropod-like taxa historically classified as a "prosauropod". The other is to exclude from Sauropoda any species more distantly related to derived sauropods than Vulcanodon, one of the earliest and most basal taxa historically accepted as a sauropod. This leaves an interval of species more closely related to derived sauropods than Melanorosaurus but not so closely as Vulcanodon that are sauropods under one definition but not the other. Many characteristics of sauropods, such as opisthocoelous cervical vertebrae and columnar limbs, evolved within this transitional region, so that species within it may exhibit a combination of characteristics regarded as sauropod-like or non-sauropod-like.
+For the purposes of this list, species whose phylogenetic position may fall within the interval between Melanorosaurus and Vulcanodon, or whose status as a sauropod is otherwise regarded as uncertain, are listed separately from unambiguous sauropods.
+The third section of this list covers species that were once classified as sauropods, but have been reidentified as belonging to other groups.
+The fourth section of this list covers informally named sauropod species.
+
+Unambiguous sauropods
+The following is a list of every species of sauropod that has ever been formally named, regardless of whether it is currently considered valid, dubious, or synonymous with another species. Invalid species are given a darker gray background. It does not contain species that have been recovered as basal to Vulcanodon by phylogenetic analysis, which are covered in a separate list below. The list contains the following information: 
+
+Scientific name: The binomial name of the species, accompanied by a citation to the work in which the species was formally named.
+Status: The taxonomic status of the species, listing whether the species is currently regarded as valid, a nomen dubium, or as synonymous with another species.
+Authors: The list of people credited with naming the species.
+Date named: The date on which the species name is formally regarded as having first been published. According to the International Code of Zoological Nomenclature, only print publications and online works registered in ZooBank are considered to have been formally published, so the date given is the date recorded by ZooBank or the date of print publication, if different from the date of online publication.
+Parent clade: The most specific clade that the species is uncontroversially regarded as belonging to. When sorted, this column will place the clades in phylogenetic order, not alphabetical.
+Age: The geological age of the species in millions of years ago. Ranges generally indicate uncertainty, not the known duration of the species, so the range of ages listed does not imply that the species existed for the entire duration of that range. When a numerical age range is not directly available, it is converted from the date range of the reported chronostratigraphic units.
+Location: A list of countries where fossils of the species have been found. In the case of invalid species, only where the type specimen was found.
+Notes: Miscellaneous notes, including what the species was originally called, if its genus assignment has been changed.
+Skeletal diagram: A diagram showing a hypothetical silhouette of the animal, which bones are known of the species, and a size comparison if possible. For valid species, this may be a composite of multiple specimens, but for invalid species, this shows only the type specimen of the species.
+
+Sauropodomorphs of uncertain affinity
+This section of the list contains sauropodomorphs that are more closely related to eusauropods than Melanorosaurus but not as closely as Vulcanodon, thus lying between the two proposed boundaries of Sauropoda, as well as sauropodomorphs of unspecified phylogenetic position whose status as sauropods is disputed.
+
+Non-sauropodomorphs misidentified as sauropods
+This section of the list covers taxa that were at one point referred to Sauropoda, its historical synonyms Cetiosauria or Opisthocoelia, or referred to a taxon that is now regarded as a sauropod, such as the genus Cetiosaurus. However, it excludes sauropodomorphs that were referred to Sauropoda as a result of debate over where the boundary between sauropods and non-sauropod sauropodomorphs lie.
+
+Informally named sauropods
+This section of the list contains sauropods that have never been formally scientifically named, but have been referred to with an informal binomial name.
+
+Footnotes
+References
+Works cited
+Further reading
+External links
+Dinosaur Genera List
+The Compact Thescelosaurus
+The Theropod Database
