@@ -13,9 +13,11 @@
 ---------------------------------------
 
 ### Adhoc tasks
-- chunking experiments: lists, tables etc.
-- create Dinosaur category/page directory with 1 sub-directory level
-- create integrated download + indexing pipeline
-    - figure out strategy for checkpointing download/indexing pages or categories (redis?)
+- chunking experiments: lists, tables etc. (abandoned for later)
+- create Dinosaur category/page directory with 1 sub-directory level (done)
+- create integrated download + indexing pipeline 
+    - figure out strategy for checkpointing download/indexing pages or categories (redis?) (partial) 
+        - checkpointing done at directory level, pages fetched and downloaded (done)
+        - indexing pipeline (not done)
 - get references marked from LLM during question/answering
  
