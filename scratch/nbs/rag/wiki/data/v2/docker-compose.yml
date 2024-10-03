@@ -1,0 +1,21 @@
+services:
+  redis:
+    image: "redis:latest"
+    ports:
+      - 6379:6379
+    restart: on-failure:0
+    volumes:
+      - redis_data_v2:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis_data_v2:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /aux/src/tinker/scratch/nbs/rag/wiki/data/v2/redis
