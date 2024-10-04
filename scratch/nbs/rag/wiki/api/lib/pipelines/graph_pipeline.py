@@ -1,3 +1,6 @@
+### Should be encapsulated in a function for reuse
+# Parametrize the function for flexibility
+
 from lib.components.wiki_hierarchy_builder import WikiHierarchyBuilder
 from lib.components.wiki_context_creator import WikiContextCreator
 from lib.templates import hierarchy_template, final_template

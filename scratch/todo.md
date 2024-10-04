@@ -19,5 +19,7 @@
     - figure out strategy for checkpointing download/indexing pages or categories (redis?) (partial) 
         - checkpointing done at directory level, pages fetched and downloaded (done)
         - indexing pipeline (not done)
+            - chunking (done)
+            - indexing (not done)
 - get references marked from LLM during question/answering
  
