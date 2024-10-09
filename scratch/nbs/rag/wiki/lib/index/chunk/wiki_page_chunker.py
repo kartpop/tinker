@@ -84,7 +84,7 @@ class WikiPageChunker:
                         "file_path": doc.meta["file_path"],
                         "source_id": doc.id,
                         "split_id": i,
-                        "title": "Dinosaurs",
+                        "title": page_title,
                     }
                     if current_h2:
                         meta["h2"] = current_h2
