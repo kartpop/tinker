@@ -43,9 +43,11 @@ def html_to_text_chunks(html_str: str) -> List[str]:
         elif tag.name in nested:
             list_items = tag.find_all("li")  # Find all list items
             for li in list_items:
-                chunks.append(
-                    "- " + clean_text(li.get_text(separator=" "))
-                )  # Clean and add each list item text to chunks with prefix
+                li_text = clean_text(li.get_text(separator=" "))
+                if li_text: # Skip empty list items (images etc.)
+                    chunks.append(
+                        "- " + li_text
+                    )  # Clean and add each list item text to chunks with prefix
         else:
             chunks.append(str(tag))  # Add other tags as strings
 

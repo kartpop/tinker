@@ -8,23 +8,16 @@ class Neo4jPageGraphCreator:
         self.create_indexes()
 
     def create_indexes(self):
+        index_queries = [
+            "CREATE INDEX IF NOT EXISTS FOR (n:Chunk) ON (n.uuid);",
+            "CREATE INDEX IF NOT EXISTS FOR (n:Page) ON (n.uuid);",
+            "CREATE INDEX IF NOT EXISTS FOR (n:Page) ON (n.title);",
+            "CREATE INDEX IF NOT EXISTS FOR (n:Section) ON (n.uuid);",
+            "CREATE INDEX IF NOT EXISTS FOR (n:Section) ON (n.parent_uuid, n.name);"
+        ]
         with self.driver.session() as session:
-            session.write_transaction(
-                self._run_query, "CREATE INDEX FOR (n:Chunk) ON (n.uuid);"
-            )
-            session.write_transaction(
-                self._run_query, "CREATE INDEX FOR (n:Page) ON (n.uuid);"
-            )
-            session.write_transaction(
-                self._run_query, "CREATE INDEX FOR (n:Page) ON (n.title);"
-            )
-            session.write_transaction(
-                self._run_query, "CREATE INDEX FOR (n:Section) ON (n.uuid);"
-            )
-            session.write_transaction(
-                self._run_query,
-                "CREATE INDEX FOR (n:Section) ON (n.parent_uuid, n.name);",
-            )
+            for query in index_queries:
+                session.execute_write(self._run_query, query)
 
     def close(self):
         self.driver.close()
@@ -39,7 +32,7 @@ class Neo4jPageGraphCreator:
             ON CREATE SET p.uuid = $uuid
             RETURN p
             """
-            session.write_transaction(
+            session.execute_write(
                 self._run_query, page_query, title=page_dict["title"], uuid=page_uuid
             )
 
@@ -61,7 +54,7 @@ class Neo4jPageGraphCreator:
             MERGE (parent)-[:HAS_SECTION]->(s)
             RETURN s
             """
-            session.write_transaction(
+            session.execute_write(
                 self._run_query,
                 section_query,
                 parent_uuid=parent_uuid,
@@ -86,7 +79,7 @@ class Neo4jPageGraphCreator:
             MERGE (parent)-[:HAS_CHUNK]->(c)
             RETURN c
             """
-            session.write_transaction(
+            session.execute_write(
                 self._run_query, chunk_query, parent_uuid=parent_uuid, uuid=chunk_uuid
             )
 
@@ -102,7 +95,7 @@ class Neo4jPageGraphCreator:
                 MERGE (parent)-[:FIRST_CHUNK]->(c)
                 RETURN parent, c
                 """
-                session.write_transaction(
+                session.execute_write(
                     self._run_query,
                     first_chunk_query,
                     parent_uuid=parent_uuid,
@@ -124,7 +117,7 @@ class Neo4jPageGraphCreator:
                 MERGE (c1)-[:NEXT]->(c2)
                 RETURN c1, c2
                 """
-                session.write_transaction(
+                session.execute_write(
                     self._run_query,
                     next_chunk_query,
                     uuid1=chunk["id"],
