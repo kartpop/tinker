@@ -11,6 +11,8 @@ class WikiHierarchy:
     def get_hierarchy(self, chunk_id):
         with self.driver.session() as session:
             # Step 1: Find the title node from the chunk ID
+            # Presence of :HAS_SECTION and :HAS_CHUNK relationships ensures that we reach the page node directly
+            # via the shortest path
             page_node = session.run(
                 """
             MATCH (chunk:Chunk {uuid: $chunk_id})
@@ -89,7 +91,10 @@ class WikiHierarchy:
             section_list.append(section_hierarchy_entry)
             chunks_list.append(chunks_hierarchy_entry)
 
-            # Get the chunks directly connected to this section node
+            # Get the chunks directly connected to this section node.
+            # Note: We could directly get the chunks connected to the section using :HAS_CHUNK relationship.
+            # However, the returned chunks may not be ordered correctly.
+            # Hence, we traverse the chunks using the :FIRST_CHUNK and :NEXT relationships.
             section_chunks = session.run(
                 """
             MATCH (s {uuid: $uuid})-[:FIRST_CHUNK]->(first_chunk)
@@ -105,7 +110,10 @@ class WikiHierarchy:
                 chunk_node = chunk["chunk"]
                 chunks_hierarchy_entry["chunks"].append(chunk_node["uuid"])
 
-        # Get the chunks directly connected to this node
+        # Get the chunks directly connected to this section node.
+        # Note: We could directly get the chunks connected to the section using :HAS_CHUNK relationship.
+        # However, the returned chunks may not be ordered correctly.
+        # Hence, we traverse the chunks using the :FIRST_CHUNK and :NEXT relationships.
         chunks = session.run(
             """
         MATCH (n {uuid: $uuid})-[:FIRST_CHUNK]->(first_chunk)

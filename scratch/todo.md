@@ -14,12 +14,9 @@
 
 ### Adhoc tasks
 - chunking experiments: lists, tables etc. (abandoned for later)
-- create Dinosaur category/page directory with 1 sub-directory level (done)
-- create integrated download + indexing pipeline 
-    - figure out strategy for checkpointing download/indexing pages or categories (redis?) (partial) 
-        - checkpointing done at directory level, pages fetched and downloaded (done)
-        - indexing pipeline (not done)
-            - chunking (done)
-            - indexing (not done)
 - get references marked from LLM during question/answering
+    - fix the hierarchy path returned by phase 2
+        - Instead of ["Dinosaur", "Paloebiology"], get more granular { "page_title": "Dinosaurs", "h2": "Paleobiology"}
+            - Multiple components and their interface might need to change
+        - Optimize wiki/api/lib/wiki_hierarchy.py. Some 'Match' clauses are working on generic node right now, but indexes are on specific node types - Category, Page, Section + Parent_id, Chunk_id etc...make use of these indexes to optimize the hierarchy builder query
  

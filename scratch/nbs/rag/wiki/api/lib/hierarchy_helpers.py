@@ -26,6 +26,41 @@ def get_sub_hierarchy_from_path(page_hierarchy, path):
     return get_hierarchy_by_path_recursive(page_hierarchy, sections)
 
 
+def get_subhierarchy_and_metadata_from_path(page_hierarchy, path):
+    """
+    Get sub-hierarchy by path from the page hierarchy.
+    Also extract metadata from the hierarchy. Example, "metadata": {"title": "Dinosaur", "h2": "Paleobiology", "h3": "Size"}
+    """
+
+    def get_hierarchy_by_path_recursive(hierarchy, sections, metadata):
+        # Base case: if no more sections to traverse, return the current level
+        if not sections:
+            return hierarchy
+
+        # Get the current section to look for
+        current_section = sections[0]
+
+        # Check if the current level has subsections
+        if "sections" in hierarchy:
+            for sub_section in hierarchy["sections"]:
+                if sub_section["name"] == current_section:
+                    # Set the metadata for the current section
+                    metadata[sub_section["type"]] = sub_section["name"]
+                    # Recursively call the function with the remaining sections
+                    return get_hierarchy_by_path_recursive(sub_section, sections[1:], metadata)
+
+        # If the section is not found, return None
+        return None
+
+    sections = path[1:] # Skip the first element which is the page title
+    metadata = {"title": path[0]}
+    page_sub_hierarchy = get_hierarchy_by_path_recursive(page_hierarchy, sections, metadata)
+    # Call the recursive function
+    return page_sub_hierarchy, metadata
+
+
+
+
 def extract_chunks_from_hierarchy(chunks_hierarchy):
     """
     Extract all chunk IDs from the hierarchy.
