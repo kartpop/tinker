@@ -1,3 +1,6 @@
+import sys
+import os
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from haystack.components.embedders import OpenAIDocumentEmbedder, OpenAITextEmbedder
@@ -19,7 +22,7 @@ from haystack.components.joiners.document_joiner import DocumentJoiner
 import sys
 import os
 from haystack import Pipeline
-from lib.templates import p1_qa_template
+from wiki.api.lib.templates import p1_qa_template_v2
 
 
 document_embedder = OpenAIDocumentEmbedder(model="text-embedding-3-small")
@@ -31,7 +34,7 @@ elasticsearch_retriever = ElasticsearchBM25Retriever(
     document_store=elasticsearch_store, top_k=3
 )
 reciprocal_rank_fusion_joiner = DocumentJoiner(join_mode="reciprocal_rank_fusion")
-p1_qa_prompt_builder = PromptBuilder(template=p1_qa_template)
+p1_qa_prompt_builder = PromptBuilder(template=p1_qa_template_v2)
 p1_qa_generator = OpenAIGenerator(model="gpt-4o-mini")
 
 
