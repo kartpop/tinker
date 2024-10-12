@@ -1,0 +1,4 @@
+wiki:
+  category_info_url: "https://en.wikipedia.org/w/api.php?action=query&format=json&list=categorymembers&cmtitle=Category:{category}&cmlimit=max"
+  headers:
+    User-Agent: "Tinker/0.1 (kartikeyapophali@gmail.com)" # intentionally not snake_case
