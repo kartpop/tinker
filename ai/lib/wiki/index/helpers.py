@@ -3,6 +3,7 @@ from typing import List
 import os
 import requests
 from config import config
+import wikipediaapi
 
 
 def get_wiki_category_members(category: str, filepath: str) -> list:
@@ -44,8 +45,30 @@ def get_title_pathname_map(
 ) -> dict:
     """
     Returns a map of page title to file name and category title to directory name derived from Wikipedia response query.
-    Pages/categories in the inverse_filter list are excluded. In case the title_pathname.json file does not exist, it is created
-    if 'create' flag is set to True, else a FileNotFoundError is raised.
+
+    Args:
+        category (str): The Wikipedia category to fetch data for.
+        filepath (str): The directory path to save the data.
+        inverse_filter (List[str]): A list of page/category titles to exclude.
+        create (bool): Flag to create the title_pathname.json file if it does not exist.
+
+    Returns:
+        dict: A dictionary with page titles mapped to file names and category titles mapped to directory names.
+
+    Raises:
+        FileNotFoundError: If the title_pathname.json file does not exist and 'create' is set to False.
+
+    Example return dict:
+    {
+        "pages": {
+            "Page1 title": "Page1_title.html",
+            "Page2 title": "Page2_title.html"
+        },
+        "categories": {
+            "Category1 title": "Category1_title",
+            "Category2 title": "Category2_title"
+        }
+    }
     """
     metadata_download_path = os.path.join(filepath, ".metadata/download")
     if not os.path.exists(metadata_download_path) and not create:
@@ -87,3 +110,19 @@ def get_title_pathname_map(
         json.dump(title_pathname, file)
 
     return title_pathname
+
+
+def download_page(page_title: str, page_filename: str, filepath: str) -> None:
+    """
+    Fetches the page content from Wikipedia, saves it in an HTML file in the specified directory, and returns the file name.
+    """
+    wiki_html = wikipediaapi.Wikipedia(
+        user_agent='Tinker/0.1 (kartikeyapophali@gmail.com)',
+        language='en',
+        extract_format=wikipediaapi.ExtractFormat.HTML
+    )
+
+    p_html = wiki_html.page(page_title)
+    file_path = os.path.join(filepath, page_filename)
+    with open(file_path, "w") as file:
+        file.write(p_html.text)

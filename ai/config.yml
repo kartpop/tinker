@@ -2,3 +2,13 @@ wiki:
   category_info_url: "https://en.wikipedia.org/w/api.php?action=query&format=json&list=categorymembers&cmtitle=Category:{category}&cmlimit=max"
   headers:
     User-Agent: "Tinker/0.1 (kartikeyapophali@gmail.com)" # intentionally not snake_case
+
+databases:
+  redis:
+    host: "localhost"
+    port: 6379
+    db: 0
+
+
+# Data version: either v100 or v3000 (refers to the approximate number of pages in the dataset)
+data_ver: "v100"
