@@ -6,6 +6,11 @@ from lib.wiki.index.helpers import get_wiki_category_members, get_title_pathname
 
 
 class TestHelpers(unittest.TestCase):
+    
+    # ------------------------------------------
+    # Test Cases for get_wiki_category_members
+    # ------------------------------------------
+    
     @patch("lib.wiki.index.helpers.os.path.exists")
     @patch("lib.wiki.index.helpers.os.makedirs")
     @patch(
@@ -55,20 +60,44 @@ class TestHelpers(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     @patch("lib.wiki.index.helpers.os.path.exists")
+    @patch("lib.wiki.index.helpers.os.makedirs")
+    @patch("lib.wiki.index.helpers.open", new_callable=mock_open, read_data='{}')
+    def test_get_wiki_category_members_key_error(self, mock_open, mock_makedirs, mock_path_exists):
+        # Mock the os.path.exists method to return True for the response file
+        mock_path_exists.side_effect = lambda path: path.endswith("response.json")
+
+        category = "TestCategory"
+        filepath = "/test/path"
+
+        with self.assertRaises(KeyError):
+            get_wiki_category_members(category, filepath)
+            
+    
+    
+    # ------------------------------------------
+    # Test Cases for get_title_pathname_map
+    # ------------------------------------------
+
+    @patch("lib.wiki.index.helpers.os.path.exists")
+    @patch("lib.wiki.index.helpers.os.makedirs")
     @patch(
         "lib.wiki.index.helpers.open",
         new_callable=mock_open,
         read_data='{"pages": {"Page1": "Page1.html"}, "categories": {"Category1": "Category1"}}',
     )
-    def test_get_title_pathname_map_file_exists(self, mock_open, mock_path_exists):
-        # Mock the os.path.exists method to return True
-        mock_path_exists.side_effect = lambda path: path.endswith("title_pathname.json")
+    def test_get_title_pathname_map_file_exists(self, mock_open, mock_makedirs, mock_path_exists):
+        # Mock the os.path.exists method to return True for the metadata download path and the JSON file
+        def path_exists_side_effect(path):
+            if path.endswith(".metadata/download") or path.endswith("title_pathname.json"):
+                return True
+            return False
+        mock_path_exists.side_effect = path_exists_side_effect
 
         category = "TestCategory"
         filepath = "/test/path"
         inverse_filter = []
 
-        result = get_title_pathname_map(category, filepath, inverse_filter)
+        result = get_title_pathname_map(category, filepath, inverse_filter, create=True)
 
         expected_result = {
             "pages": {"Page1": "Page1.html"},
@@ -78,9 +107,7 @@ class TestHelpers(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     @patch("lib.wiki.index.helpers.os.path.exists")
-    def test_get_title_pathname_map_file_not_exists_create_if_not_exists_false(
-        self, mock_path_exists
-    ):
+    def test_get_title_pathname_map_file_not_exists_create_false(self, mock_path_exists):
         # Mock the os.path.exists method to return False
         mock_path_exists.return_value = False
 
@@ -89,63 +116,51 @@ class TestHelpers(unittest.TestCase):
         inverse_filter = []
 
         with self.assertRaises(FileNotFoundError):
-            get_title_pathname_map(
-                category, filepath, inverse_filter, create_if_not_exists=False
-            )
+            get_title_pathname_map(category, filepath, inverse_filter, create=False)
 
     @patch("lib.wiki.index.helpers.os.path.exists")
     @patch("lib.wiki.index.helpers.os.makedirs")
     @patch("lib.wiki.index.helpers.open", new_callable=mock_open)
     @patch("lib.wiki.index.helpers.get_wiki_category_members")
-    def test_get_title_pathname_map_file_not_exists_create_if_not_exists_true(
-        self, mock_get_wiki_category_members, mock_open, mock_makedirs, mock_path_exists
-    ):
+    def test_get_title_pathname_map_file_not_exists_create_true(self, mock_get_wiki_category_members, mock_open, mock_makedirs, mock_path_exists):
         # Mock the os.path.exists method
         def path_exists_side_effect(path):
             if path.endswith("title_pathname.json"):
                 return False
             return True
-
         mock_path_exists.side_effect = path_exists_side_effect
 
         # Mock the get_wiki_category_members function
         mock_get_wiki_category_members.return_value = [
-            {"title": "Page1", "ns": 0},
-            {"title": "Category1", "ns": 14},
+            {"title": "Page1 title", "ns": 0},
+            {"title": "Category1 title", "ns": 14},
         ]
 
         category = "TestCategory"
         filepath = "/test/path"
         inverse_filter = []
 
-        result = get_title_pathname_map(
-            category, filepath, inverse_filter, create_if_not_exists=True
-        )
+        result = get_title_pathname_map(category, filepath, inverse_filter, create=True)
 
         expected_result = {
-            "pages": {"Page1": "Page1.html"},
-            "categories": {"Category1": "Category1"},
+            "pages": {"Page1 title": "Page1_title.html"},
+            "categories": {"Category1 title": "Category1_title"},
         }
 
         self.assertEqual(result, expected_result)
         mock_get_wiki_category_members.assert_called_once_with(category, filepath)
-        mock_open.assert_called_once_with(
-            os.path.join(filepath, ".metadata/download", "title_pathname.json"), "w"
-        )
+        mock_open.assert_called_once_with(os.path.join(filepath, ".metadata/download", "title_pathname.json"), "w")
 
     @patch("lib.wiki.index.helpers.os.path.exists")
     @patch("lib.wiki.index.helpers.os.makedirs")
     @patch("lib.wiki.index.helpers.open", new_callable=mock_open)
     @patch("lib.wiki.index.helpers.get_wiki_category_members")
-    def test_get_title_pathname_map_inverse_filter(
-        self, mock_get_wiki_category_members, mock_open, mock_makedirs, mock_path_exists
-    ):
+    def test_get_title_pathname_map_inverse_filter(self, mock_get_wiki_category_members, mock_open, mock_makedirs, mock_path_exists):
         # Mock the os.path.exists method
         def path_exists_side_effect(path):
             if path.endswith("title_pathname.json"):
                 return False
             return True
-
         mock_path_exists.side_effect = path_exists_side_effect
 
         # Mock the get_wiki_category_members function
@@ -160,9 +175,7 @@ class TestHelpers(unittest.TestCase):
         filepath = "/test/path"
         inverse_filter = ["birds", "list of"]
 
-        result = get_title_pathname_map(
-            category, filepath, inverse_filter, create_if_not_exists=True
-        )
+        result = get_title_pathname_map(category, filepath, inverse_filter, create=True)
 
         expected_result = {
             "pages": {"Page1": "Page1.html"},
@@ -171,9 +184,7 @@ class TestHelpers(unittest.TestCase):
 
         self.assertEqual(result, expected_result)
         mock_get_wiki_category_members.assert_called_once_with(category, filepath)
-        mock_open.assert_called_once_with(
-            os.path.join(filepath, ".metadata/download", "title_pathname.json"), "w"
-        )
+        mock_open.assert_called_once_with(os.path.join(filepath, ".metadata/download", "title_pathname.json"), "w")
 
 
 if __name__ == "__main__":

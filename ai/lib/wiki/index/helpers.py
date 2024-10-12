@@ -17,18 +17,21 @@ def get_wiki_category_members(category: str, filepath: str) -> list:
     if os.path.exists(response_filepath):
         with open(response_filepath, "r") as file:
             response_data = json.load(file)
-        return response_data["query"]["categorymembers"]
+    else:
+        # Make the initial request to get the category information
+        url = config.get("wiki.url").format(category=category)
+        headers = config.get("wiki.headers")
+        response = requests.get(url, headers=headers)
+        response_data = response.json()
 
-    # Make the initial request to get the category information
-    url = config.get("wiki.url").format(category=category)
-    headers = config.get("wiki.headers")
-    response = requests.get(url, headers=headers)
-    write_response_data = response.json()
+        with open(response_filepath, "w") as file:
+            json.dump(response_data, file)
 
-    with open(response_filepath, "w") as file:
-        json.dump(write_response_data, file)
-
-    response_data = response.json()
+    # Check if 'query' and 'categorymembers' keys exist
+    if "query" not in response_data or "categorymembers" not in response_data["query"]:
+        raise KeyError(
+            "'query' and 'categorymembers' keys must be present in the response data"
+        )
 
     return response_data["query"]["categorymembers"]
 
@@ -37,13 +40,16 @@ def get_title_pathname_map(
     category: str,
     filepath: str,
     inverse_filter: List[str] = [],
-    create_if_not_exists: bool = False,
+    create: bool = False,
 ) -> dict:
     """
-    Returns a map of page_title to file name and category title to directory name derived from Wikipedia response query.
-    Pages/categories in the inverse_filter list are not included.
+    Returns a map of page title to file name and category title to directory name derived from Wikipedia response query.
+    Pages/categories in the inverse_filter list are excluded. In case the title_pathname.json file does not exist, it is created
+    if 'create' flag is set to True, else a FileNotFoundError is raised.
     """
     metadata_download_path = os.path.join(filepath, ".metadata/download")
+    if not os.path.exists(metadata_download_path) and not create:
+        raise FileNotFoundError("Metadata download path does not exist.")
 
     title_pathname_filepath = os.path.join(
         metadata_download_path, "title_pathname.json"
@@ -52,12 +58,6 @@ def get_title_pathname_map(
         with open(title_pathname_filepath, "r") as file:
             title_pathname_data = json.load(file)
         return title_pathname_data
-
-    if not os.path.exists(metadata_download_path):
-        if create_if_not_exists:
-            os.makedirs(metadata_download_path)
-        else:
-            raise FileNotFoundError("Metadata download path does not exist.")
 
     title_pathname = {"pages": {}, "categories": {}}
 
@@ -71,10 +71,16 @@ def get_title_pathname_map(
         ):
             continue
 
-        if member["ns"] == 0:  # Page
-            title_pathname["pages"][member["title"]] = f"{member['title']}.html"
-        elif member["ns"] == 14:  # Category
-            title_pathname["categories"][member["title"]] = member["title"]
+        if member["ns"] == 0:
+            page_title = member["title"]
+            underscored_page_title = page_title.replace(" ", "_")
+            page_filename = f"{underscored_page_title}.html"
+            title_pathname["pages"][page_title] = page_filename
+        elif member["ns"] == 14:
+            category_title = member["title"].replace("Category:", "")
+            underscored_category_title = category_title.replace(" ", "_")
+            category_dirname = f"{underscored_category_title}"
+            title_pathname["categories"][category_title] = category_dirname
 
     # Save the title_pathname map to a file
     with open(title_pathname_filepath, "w") as file:
