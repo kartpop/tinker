@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import patch, mock_open
 import os
-import json
 from lib.wiki.index.download.helpers import get_wiki_category_members, get_title_pathname_map
 
 

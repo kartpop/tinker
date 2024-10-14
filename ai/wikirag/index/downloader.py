@@ -23,12 +23,12 @@ class Downloader:
         depth: int,
     ) -> int:
         """
-        Fetches Wikipedia data for a given category and saves it to the specified filepath.
+        Fetches Wikipedia data recursively for a given category and saves it to the specified filepath.
 
         Args:
             category (str): The Wikipedia category to fetch data for.
             filepath (str): The directory path to save the data.
-            inverse_filter (list): A list of page/category titles to exclude.
+            inverse_filter (list): A list of words/phrases; category or pages containing any of these as substring will be excluded.
             category_pages_downloaded (dict): A dictionary to track the number of pages downloaded per category.
             depth (int): The current depth of the recursive fetch.
 
