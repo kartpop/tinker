@@ -1,15 +1,19 @@
 import os
 import logging
-from lib.wiki.index.helpers import get_title_pathname_map, download_page
+from lib.wiki.index.helpers import (
+    get_title_pathname_map,
+    download_page,
+    WikiDownloadError,
+)
 from typing import List
 from config import config
 import redis
+from dotenv import load_dotenv
 
 
 class ProcContext:
     redis = None
     logger = None
-    data_ver = ""
 
 
 proc_context = ProcContext()
@@ -36,7 +40,9 @@ def fetch_wiki_data(
         int: The total number of pages downloaded.
     """
     try:
-        if depth > 100:
+        if (
+            depth > 100
+        ):  # Limit the depth to 100; max depth of Wikipedia category tree ~ 15-20
             return 0
 
         if not os.path.exists(filepath):
@@ -49,24 +55,18 @@ def fetch_wiki_data(
 
         pages = title_pathname["pages"]
         for page_title, page_filename in pages.items():
-            if proc_context.redis.sismember(
-                f"downloaded_pages_{proc_context.data_ver}", page_title
-            ):
+            if proc_context.redis.sismember("downloaded_pages", page_title):
                 continue
             download_page(page_title, page_filename, filepath)
             num_total_pages_downloaded += 1
-            proc_context.redis.sadd(
-                f"downloaded_pages_{proc_context.data_ver}", page_title
-            )
+            proc_context.redis.sadd("downloaded_pages", page_title)
 
         if num_total_pages_downloaded > 0:
             category_pages_downloaded[category] = num_total_pages_downloaded
 
         subcategories = title_pathname["categories"]
         for subcategory_title, subcategory_path in subcategories.items():
-            if proc_context.redis.sismember(
-                f"downloaded_categories_{proc_context.data_ver}", subcategory_title
-            ):
+            if proc_context.redis.sismember("downloaded_categories", subcategory_title):
                 continue
             subcategory_path = os.path.join(filepath, subcategory_path)
             subcategory_total_pages_downloaded = fetch_wiki_data(
@@ -77,33 +77,40 @@ def fetch_wiki_data(
                 depth + 1,
             )
             num_total_pages_downloaded += subcategory_total_pages_downloaded
-            proc_context.redis.sadd(
-                f"downloaded_categories_{proc_context.data_ver}", subcategory_title
-            )
+            proc_context.redis.sadd("downloaded_categories", subcategory_title)
 
         return num_total_pages_downloaded
 
+    except WikiDownloadError as e:
+        proc_context.logger.error(
+            f"Error fetching data for category {category}: {e}", exc_info=True
+        )
+        return -1
     except Exception as e:
-        proc_context.logger.error(f"Error fetching data for category {category}: {e}")
-        return 0
+        proc_context.logger.error(
+            f"Unexpected error fetching data for category {category}: {e}",
+            exc_info=True,
+        )
+        return -1
 
 
 def main():
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-    )
-    proc_context.logger = logging.getLogger()
+    load_dotenv()
 
-    proc_context.data_ver = config.get("data_ver")
+    log_level = config.get("level", "INFO")
+    log_format = config.get("format", "%(asctime)s - %(levelname)s - %(message)s")
+
+    logging.basicConfig(level=log_level, format=log_format)
+    proc_context.logger = logging.getLogger("main")
+
+    proc_context.data_ver = config.get("data_ver", "v100")
 
     category = "Dinosaurs"
-    filepath = f"/data/{proc_context.data_ver}/Dinosaurs"
+    filepath = f"data/{proc_context.data_ver}/Dinosaurs"
 
-    redis_host, redis_port, redis_db = (
-        config.get("databases.redis.host"),
-        config.get("databases.redis.port"),
-        config.get("databases.redis.db"),
-    )
+    redis_host = os.getenv("REDIS_HOST")
+    redis_port = int(os.getenv("REDIS_PORT"))
+    redis_db = int(os.getenv("REDIS_DB"))
     proc_context.redis = redis.Redis(host=redis_host, port=redis_port, db=redis_db)
 
     proc_context.logger.info(f"Downloading category members for {category}")

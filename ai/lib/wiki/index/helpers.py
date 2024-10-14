@@ -4,37 +4,57 @@ import os
 import requests
 from config import config
 import wikipediaapi
+import inspect
+
+
+class WikiDownloadError(Exception):
+    def __init__(self, message, function_name):
+        super().__init__(f"{function_name}: {message}")
+        self.function_name = function_name
 
 
 def get_wiki_category_members(category: str, filepath: str) -> list:
     """
     Returns the list of pages and sub-categories of a given Wikipedia category.
     """
-    metadata_download_path = os.path.join(filepath, ".metadata/download")
-    if not os.path.exists(metadata_download_path):
-        os.makedirs(metadata_download_path)
+    try:
+        metadata_download_path = os.path.join(filepath, ".metadata/download")
+        if not os.path.exists(metadata_download_path):
+            os.makedirs(metadata_download_path)
 
-    response_filepath = os.path.join(metadata_download_path, "response.json")
-    if os.path.exists(response_filepath):
-        with open(response_filepath, "r") as file:
-            response_data = json.load(file)
-    else:
-        # Make the initial request to get the category information
-        url = config.get("wiki.url").format(category=category)
-        headers = config.get("wiki.headers")
-        response = requests.get(url, headers=headers)
-        response_data = response.json()
+        response_filepath = os.path.join(metadata_download_path, "response.json")
+        if os.path.exists(response_filepath):
+            with open(response_filepath, "r") as file:
+                response_data = json.load(file)
+        else:
+            url = config.get("wiki.category_info_url").format(category=category)
+            headers = config.get("wiki.headers")
+            response = requests.get(url, headers=headers)
+            response_data = response.json()
 
-        with open(response_filepath, "w") as file:
-            json.dump(response_data, file)
+            with open(response_filepath, "w") as file:
+                json.dump(response_data, file)
 
-    # Check if 'query' and 'categorymembers' keys exist
-    if "query" not in response_data or "categorymembers" not in response_data["query"]:
-        raise KeyError(
-            "'query' and 'categorymembers' keys must be present in the response data"
-        )
+        if (
+            "query" not in response_data
+            or "categorymembers" not in response_data["query"]
+        ):
+            raise KeyError(
+                "'query' and 'categorymembers' keys must be present in the response data"
+            )
 
-    return response_data["query"]["categorymembers"]
+        return response_data["query"]["categorymembers"]
+    except KeyError as e:
+        function_name = inspect.currentframe().f_code.co_name
+        raise WikiDownloadError(
+            f"KeyError: {str(e)} while fetching category members for {category}",
+            function_name,
+        ) from e
+    except Exception as e:
+        function_name = inspect.currentframe().f_code.co_name
+        raise WikiDownloadError(
+            f"Error fetching category members for {category}", function_name
+        ) from e
 
 
 def get_title_pathname_map(
@@ -70,59 +90,74 @@ def get_title_pathname_map(
         }
     }
     """
-    metadata_download_path = os.path.join(filepath, ".metadata/download")
-    if not os.path.exists(metadata_download_path) and not create:
-        raise FileNotFoundError("Metadata download path does not exist.")
+    try:
+        metadata_download_path = os.path.join(filepath, ".metadata/download")
+        if not os.path.exists(metadata_download_path) and not create:
+            raise FileNotFoundError("Metadata download path does not exist.")
 
-    title_pathname_filepath = os.path.join(
-        metadata_download_path, "title_pathname.json"
-    )
-    if os.path.exists(title_pathname_filepath):
-        with open(title_pathname_filepath, "r") as file:
-            title_pathname_data = json.load(file)
-        return title_pathname_data
+        title_pathname_filepath = os.path.join(
+            metadata_download_path, "title_pathname.json"
+        )
+        if os.path.exists(title_pathname_filepath):
+            with open(title_pathname_filepath, "r") as file:
+                title_pathname_data = json.load(file)
+            return title_pathname_data
 
-    title_pathname = {"pages": {}, "categories": {}}
+        title_pathname = {"pages": {}, "categories": {}}
+        category_members = get_wiki_category_members(category, filepath)
 
-    category_members = get_wiki_category_members(category, filepath)
+        for member in category_members:
+            if any(
+                keyword.lower() in member["title"].lower() for keyword in inverse_filter
+            ):
+                continue
 
-    for member in category_members:
-        # Skip members to filter out based on keywords or phrases in inverse_filter
-        # Example: inverse_filter = ["birds", "list of"] will filter out all pages/categories with "birds" or "list of" in their title
-        if any(
-            keyword.lower() in member["title"].lower() for keyword in inverse_filter
-        ):
-            continue
+            if member["ns"] == 0:
+                page_title = member["title"]
+                underscored_page_title = page_title.replace(" ", "_")
+                page_filename = f"{underscored_page_title}.html"
+                title_pathname["pages"][page_title] = page_filename
+            elif member["ns"] == 14:
+                category_title = member["title"].replace("Category:", "")
+                underscored_category_title = category_title.replace(" ", "_")
+                category_dirname = f"{underscored_category_title}"
+                title_pathname["categories"][category_title] = category_dirname
 
-        if member["ns"] == 0:
-            page_title = member["title"]
-            underscored_page_title = page_title.replace(" ", "_")
-            page_filename = f"{underscored_page_title}.html"
-            title_pathname["pages"][page_title] = page_filename
-        elif member["ns"] == 14:
-            category_title = member["title"].replace("Category:", "")
-            underscored_category_title = category_title.replace(" ", "_")
-            category_dirname = f"{underscored_category_title}"
-            title_pathname["categories"][category_title] = category_dirname
+        with open(title_pathname_filepath, "w") as file:
+            json.dump(title_pathname, file)
 
-    # Save the title_pathname map to a file
-    with open(title_pathname_filepath, "w") as file:
-        json.dump(title_pathname, file)
-
-    return title_pathname
+        return title_pathname
+    except FileNotFoundError as e:
+        function_name = inspect.currentframe().f_code.co_name
+        raise WikiDownloadError(
+            f"FileNotFoundError: {str(e)} while creating title pathname map for {category}",
+            function_name,
+        ) from e
+    except Exception as e:
+        function_name = inspect.currentframe().f_code.co_name
+        raise WikiDownloadError(
+            f"Error creating title pathname map for {category}",
+            function_name,
+        ) from e
 
 
 def download_page(page_title: str, page_filename: str, filepath: str) -> None:
     """
     Fetches the page content from Wikipedia, saves it in an HTML file in the specified directory, and returns the file name.
     """
-    wiki_html = wikipediaapi.Wikipedia(
-        user_agent='Tinker/0.1 (kartikeyapophali@gmail.com)',
-        language='en',
-        extract_format=wikipediaapi.ExtractFormat.HTML
-    )
+    try:
+        wiki_html = wikipediaapi.Wikipedia(
+            user_agent=config.get("wiki.headers.User-Agent"),
+            language="en",
+            extract_format=wikipediaapi.ExtractFormat.HTML,
+        )
 
-    p_html = wiki_html.page(page_title)
-    file_path = os.path.join(filepath, page_filename)
-    with open(file_path, "w") as file:
-        file.write(p_html.text)
+        p_html = wiki_html.page(page_title)
+        file_path = os.path.join(filepath, page_filename)
+        with open(file_path, "w") as file:
+            file.write(p_html.text)
+    except Exception as e:
+        function_name = inspect.currentframe().f_code.co_name
+        raise WikiDownloadError(
+            f"Error downloading page {page_title}", function_name
+        ) from e
