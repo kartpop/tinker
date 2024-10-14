@@ -6,7 +6,6 @@ import redis
 from lib.wiki.index.helpers import (
     get_title_pathname_map,
     download_page,
-    WikiIndexingError,
 )
 
 
@@ -78,11 +77,6 @@ class Downloader:
 
             return num_total_pages_downloaded
 
-        except WikiIndexingError as e:
-            self.logger.error(
-                f"Error fetching data for category {category}: {e}", exc_info=True
-            )
-            return -1
         except Exception as e:
             self.logger.error(
                 f"Unexpected error fetching data for category {category}: {e}",

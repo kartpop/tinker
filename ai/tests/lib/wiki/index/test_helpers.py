@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, mock_open
 import os
 import json
-from lib.wiki.index.helpers import get_wiki_category_members, get_title_pathname_map, WikiDownloadError
+from lib.wiki.index.helpers import get_wiki_category_members, get_title_pathname_map
 
 
 class TestHelpers(unittest.TestCase):
@@ -69,11 +69,9 @@ class TestHelpers(unittest.TestCase):
         category = "TestCategory"
         filepath = "/test/path"
 
-        with self.assertRaises(WikiDownloadError) as context:
+        with self.assertRaises(KeyError):
             get_wiki_category_members(category, filepath)
-        
-        self.assertIn("'query' and 'categorymembers' keys must be present in the response data", str(context.exception))
-
+            
     
     
     # ------------------------------------------
@@ -117,10 +115,8 @@ class TestHelpers(unittest.TestCase):
         filepath = "/test/path"
         inverse_filter = []
 
-        with self.assertRaises(WikiDownloadError) as context:
+        with self.assertRaises(FileNotFoundError):
             get_title_pathname_map(category, filepath, inverse_filter, create=False)
-        
-        self.assertIn("FileNotFoundError: Metadata download path does not exist.", str(context.exception))
 
     @patch("lib.wiki.index.helpers.os.path.exists")
     @patch("lib.wiki.index.helpers.os.makedirs")

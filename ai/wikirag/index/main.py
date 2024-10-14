@@ -7,26 +7,24 @@ from downloader import Downloader
 from datetime import datetime
 
 
-class CollectLogHandler(logging.Handler):
-    def __init__(self):
-        super().__init__()
-        self.log_messages = []
-
-    def emit(self, record):
-        self.log_messages.append(self.format(record))
-
-
 def main():
     load_dotenv()
+
+    if not os.path.exists("logs"):
+        os.makedirs("logs")
+
+    data_ver = config.get("data_ver", "v100")
 
     # Logging
     log_level = config.get("level", "INFO")
     log_format = config.get("format", "%(asctime)s - %(levelname)s - %(message)s")
     logging.basicConfig(level=log_level, format=log_format)
     logger = logging.getLogger(__name__)
-    collect_handler = CollectLogHandler()
-    collect_handler.setFormatter(logging.Formatter(log_format))
-    logger.addHandler(collect_handler)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_filename = f"logs/index_{data_ver}_{timestamp}.log"
+    file_handler = logging.FileHandler(log_filename)
+    file_handler.setFormatter(logging.Formatter(log_format))
+    logger.addHandler(file_handler)
 
     # Redis
     redis_host = os.getenv("REDIS_HOST")
@@ -34,7 +32,7 @@ def main():
     redis_db = int(os.getenv("REDIS_DB"))
     redis_client = redis.Redis(host=redis_host, port=redis_port, db=redis_db)
 
-    data_ver = config.get("data_ver", "v100")
+
     category = "Dinosaurs"
     filepath = f"data/{data_ver}/Dinosaurs"
 
@@ -59,15 +57,6 @@ def main():
         logger.info(
             f"Successfully downloaded {num_pages_downloaded} total pages.\nCategory pages: {category_pages_downloaded}"
         )
-
-    # Write logs to file
-    if not os.path.exists("logs"):
-        os.makedirs("logs")
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_filename = f"logs/download_{timestamp}.log"
-    with open(log_filename, "w") as log_file:
-        for message in collect_handler.log_messages:
-            log_file.write(message + "\n")
 
 
 if __name__ == "__main__":
