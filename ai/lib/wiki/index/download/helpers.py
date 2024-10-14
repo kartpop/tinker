@@ -4,7 +4,6 @@ import os
 import requests
 from config import config
 import wikipediaapi
-import inspect
 
 
 def get_wiki_category_members(category: str, filepath: str) -> list:

@@ -3,7 +3,7 @@ import logging
 from typing import List
 import redis
 
-from lib.wiki.index.helpers import (
+from lib.wiki.index.download.helpers import (
     get_title_pathname_map,
     download_page,
 )
