@@ -7,13 +7,14 @@ wiki:
   headers:
     User-Agent: "Tinker/0.1 (kartikeyapophali@gmail.com)" # key is intentionally not snake_case
 
-index_category: "Dinosaurs"
-index_max_depth: 2 # maximum depth to visit in wikipedia category tree (2, 100); depth 2 ~= 100 pages, depth 100 ~= 3000 pages (all pages in the Dinosaurs category)
-index_filepath: "data/v100/Dinosaurs" # if max_depth is 2, set index_filepath to "data/v100/Dinosaurs" and if max_depth is 100, set index_filepath to "data/v3000/Dinosaurs"
-index_log_filename_prefix: "index_v100"
+index:
+  category: "Dinosaurs"
+  max_depth: 2 # maximum depth to visit in wikipedia category tree (2, 100); depth 2 ~= 100 pages, depth 100 ~= 3000 pages (all pages in the Dinosaurs category)
+  filepath: "data/v100/Dinosaurs" # if max_depth is 2, set filepath to "data/v100/Dinosaurs" and if max_depth is 100, set filepath to "data/v3000/Dinosaurs"
+  log_filename_prefix: "index_v100"
 
-# Pages or categories having the following keywords/phrases as substring will be excluded from the index
-index_exclude_keywords: # case-insensitive
-  - "list of" # lists are not properly handled currently, will visit them later
-  - "lists of"
-  - "bird" # birds are included in the Dinosaurs wikipedia category, but we don't want to index them
+  # Pages or categories having the following keywords/phrases as substring will be excluded from the index
+  exclude_keywords: # case-insensitive
+    - "list of" # lists are not properly handled currently, will visit them later
+    - "lists of"
+    - "bird" # birds are included in the Dinosaurs wikipedia category, but we don't want to index them
