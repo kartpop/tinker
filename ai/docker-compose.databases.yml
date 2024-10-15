@@ -2,7 +2,7 @@ services:
   redis:
     image: "redis:latest"
     ports:
-      - 6379:6379
+      - "${REDIS_PORT}:${REDIS_PORT}"
     restart: on-failure:0
     volumes:
       - redis_data:/data
@@ -15,7 +15,7 @@ services:
   elasticsearch:
     image: "docker.elastic.co/elasticsearch/elasticsearch:8.11.1"
     ports:
-      - 9200:9200
+      - "${ELASTICSEARCH_PORT}:${ELASTICSEARCH_PORT}"
     restart: on-failure:0
     environment:
       - discovery.type=single-node
@@ -24,7 +24,7 @@ services:
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     healthcheck:
-      test: curl --fail http://localhost:9200/_cat/health || exit 1
+      test: curl --fail http://${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}/_cat/health || exit 1
       interval: 10s
       timeout: 1s
       retries: 10
@@ -34,12 +34,12 @@ services:
       - --host
       - 0.0.0.0
       - --port
-      - "8088"
+      - "${WEAVIATE_PORT}"
       - --scheme
       - http
     image: cr.weaviate.io/semitechnologies/weaviate:1.26.3
     ports:
-      - 8088:8088
+      - "${WEAVIATE_PORT}:${WEAVIATE_PORT}"
       - 50051:50051
     volumes:
       - weaviate_data:/var/lib/weaviate
@@ -56,13 +56,13 @@ services:
     image: neo4j:5.23.0
     ports:
       - 7474:7474
-      - 7687:7687
+      - "${NEO4J_PORT}:${NEO4J_PORT}"
     environment:
-      NEO4J_AUTH: neo4j/neo4jpass
+      NEO4J_AUTH: ${NEO4J_USER}/${NEO4J_PASSWORD}
     volumes:
       - neo4j_data:/data
     healthcheck:
-      test: curl --fail http://localhost:7474 || exit 1
+      test: curl --fail http://${NEO4J_HOST}:7474 || exit 1
       interval: 10s
       timeout: 1s
       retries: 10

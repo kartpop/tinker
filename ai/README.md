@@ -13,7 +13,7 @@ docker compose -f docker-compose.databases.yml up -d
 ```
 
 ***Tip***
-- Run ```docker compose down -v``` when switching between different datasets (v100 and v3000). As the volume name is same (because a common docker-compose.yml is used), the volume first needs to be removed before plugging in a different device file path to it.
+- Run ```docker compose -f docker-compose.databases.yml down -v``` when switching between different datasets (v100 and v3000). As the volume name is same (because a common docker-compose.yml is used), the volume first needs to be removed before plugging in a different device file path to it.
 
 -----------------
 
