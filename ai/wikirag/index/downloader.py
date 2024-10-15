@@ -30,15 +30,13 @@ class Downloader:
             filepath (str): The directory path to save the data.
             inverse_filter (list): A list of words/phrases; category or pages containing any of these as substring will be excluded.
             category_pages_downloaded (dict): A dictionary to track the number of pages downloaded per category.
-            depth (int): The current depth of the recursive fetch.
+            depth (int): The current remaining depth for the recursive fetch.
 
         Returns:
             int: The total number of pages downloaded.
         """
         try:
-            if (
-                depth > 100
-            ):  # Limit the depth to 100; max depth of Wikipedia category tree ~ 15-20
+            if depth < 1:
                 return 0
 
             if not os.path.exists(filepath):
@@ -70,7 +68,7 @@ class Downloader:
                     subcategory_path,
                     inverse_filter,
                     category_pages_downloaded,
-                    depth + 1,
+                    depth - 1,
                 )
                 num_total_pages_downloaded += subcategory_total_pages_downloaded
                 self.redis.sadd("downloaded_categories", subcategory_title)
@@ -79,7 +77,7 @@ class Downloader:
 
         except Exception as e:
             self.logger.error(
-                f"Unexpected error fetching data for category {category}: {e}",
+                f"Error downloading data for category {category}: {e}",
                 exc_info=True,
             )
             return -1

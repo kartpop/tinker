@@ -67,8 +67,10 @@ class Chunker:
         self, category: str, filepath: str, category_pages_chunked: Dict[str, int]
     ) -> int:
         """
-        Chunks wiki data for all pages in a category and its subcategories. Downloaded wiki data is available in the
-        .metadata/download folder. Chunks and hierarchy information are stored in the .metadata/chunk folder.
+        Chunks wiki data for all pages in a category and its subcategories. 
+        
+        Downloaded wiki data is accessed from the .metadata/download directory in the category filepath. 
+        Chunks and hierarchy information is stored in the .metadata/chunk directory.
         """
         try:
             num_total_pages_chunked = 0
@@ -111,7 +113,7 @@ class Chunker:
 
         except Exception as e:
             self.logger.error(
-                f"Unexpected error chunking data for category {category}: {e}",
+                f"Error chunking data for category {category}: {e}",
                 exc_info=True,
             )
             return -1

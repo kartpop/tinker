@@ -31,10 +31,14 @@ class WikiPageChunker:
     A component that splits the content of Wikipedia pages into chunks.
 
     The document content is expected to be in HTML format fetched via wikipediaapi and
-    which has been run through TextFileToDocument converter. Each chunk is a paragraph,
-    list, or table in the Wikipedia page. Each chunk is stored as a separate document
-    with text in the 'content' field. Each chunk also stores title, h2, h3, etc. in the
-    meta field. This custom component also creates a hierarchical structure of the chunks
+    which has been run through TextFileToDocument converter. 
+    
+    Each chunk: 
+    - is a paragraph, list, or table in the Wikipedia page
+    - is stored as a separate haystack document with text in the 'content' field
+    - stores title, h2, h3, etc. in the meta field
+    
+    This custom haystack component also creates a hierarchical structure of the chunks
     based on title, h2, h3, etc.
     """
 
@@ -58,30 +62,29 @@ class WikiPageChunker:
                 ],
                 "hierarchy": {
                     "Page1": {
-                        "title": "Page1",
+                    "title": "Page1",
+                    "sections": [
+                        {
+                        "name": "Section1",
+                        "type": "h2",
+                        "chunks": [],
                         "sections": [
                             {
-                                "name": "Section1",
-                                "type": "h2",
-                                "chunks": [...],
-                                "sections": [
-                                    {
-                                        "name": "SubSection1",
-                                        "type": "h3",
-                                        "chunks": [...],
-                                        "sections": [...]
-                                    },
-                                    ...
-                                ]
-                            },
-                            ...
-                        ],
-                        "chunks": [...]
-                    },
-                    ...
+                            "name": "SubSection1",
+                            "type": "h3",
+                            "chunks": [
+                                {"id": "1"},
+                                {"id": "2"}
+                            ],
+                            "sections": []
+                            }
+                        ]
+                        }
+                    ],
+                    "chunks": []
+                    }
                 }
             }
-            
         """
         chunks = []
         hierarchy = {}
