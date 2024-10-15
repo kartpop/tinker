@@ -5,6 +5,7 @@ import uuid
 # - added :FRIST_SECTION and :NEXT_SECTION relationships
 # - renamed :NEXT to :NEXT_CHUNK
 # - optimized cypher queries to use indexes
+# - capture page_uuid and section_uuid from the result of the cypher queries, in case the page or section already existed
 
 class Neo4jPageGraphCreatorv2:
     def __init__(self, uri, user, password):
@@ -34,11 +35,15 @@ class Neo4jPageGraphCreatorv2:
             page_query = """
             MERGE (p:Page {title: $title})
             ON CREATE SET p.uuid = $uuid
-            RETURN p
+            RETURN p.uuid AS page_uuid
             """
-            session.execute_write(
+            result = session.execute_write(
                 self._run_query, page_query, title=page_dict["title"], uuid=page_uuid
             )
+
+            # Extract the page_uuid from the result
+            # If page already existed, get the existing page_uuid
+            page_uuid = result.single()["page_uuid"]
 
             # Create sections and chunks
             self.create_sections_and_chunks(session, page_uuid, page_dict["sections"], "Page")
@@ -57,16 +62,19 @@ class Neo4jPageGraphCreatorv2:
             MATCH (parent:{parent_type} {{uuid: $parent_uuid}})
             MERGE (s{section_labels} {{name: $name, parent_uuid: $parent_uuid}})
             ON CREATE SET s.uuid = $uuid
-            MERGE (parent)-[:HAS_SECTION]->(s)
-            RETURN s
+            RETURN s.uuid AS section_uuid
             """
-            session.execute_write(
+            result = session.execute_write(
                 self._run_query,
                 section_query,
                 parent_uuid=parent_uuid,
                 name=section["name"],
                 uuid=section_uuid,
             )
+
+            # Extract the section_uuid from the result
+            # If section already existed, get the existing section_uuid
+            section_uuid = result.single()["section_uuid"]
 
             # Create the FIRST_SECTION relationship if first_section not yet created
             # Additionally also check if parent already has a FIRST_SECTION relationship, delete if so before creating new one
