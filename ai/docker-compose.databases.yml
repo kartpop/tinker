@@ -12,6 +12,61 @@ services:
       timeout: 5s
       retries: 5
 
+  elasticsearch:
+    image: "docker.elastic.co/elasticsearch/elasticsearch:8.11.1"
+    ports:
+      - 9200:9200
+    restart: on-failure:0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: curl --fail http://localhost:9200/_cat/health || exit 1
+      interval: 10s
+      timeout: 1s
+      retries: 10
+
+  weaviate:
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8088"
+      - --scheme
+      - http
+    image: cr.weaviate.io/semitechnologies/weaviate:1.26.3
+    ports:
+      - 8088:8088
+      - 50051:50051
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    restart: on-failure:0
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true" # Not for production
+      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+      DEFAULT_VECTORIZER_MODULE: "none"
+      ENABLE_API_BASED_MODULES: "true"
+      CLUSTER_HOSTNAME: "node1"
+
+  neo4j:
+    image: neo4j:5.23.0
+    ports:
+      - 7474:7474
+      - 7687:7687
+    environment:
+      NEO4J_AUTH: neo4j/neo4jpass
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: curl --fail http://localhost:7474 || exit 1
+      interval: 10s
+      timeout: 1s
+      retries: 10
+
 volumes:
   redis_data:
     driver: local
@@ -19,3 +74,24 @@ volumes:
       type: none
       o: bind
       device: ${REDIS_VOLUME_DEVICE}
+
+  elasticsearch_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${ELASTICSEARCH_VOLUME_DEVICE}
+
+  weaviate_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${WEAVIATE_VOLUME_DEVICE}
+
+  neo4j_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${NEO4J_VOLUME_DEVICE}

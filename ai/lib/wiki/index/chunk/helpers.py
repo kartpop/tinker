@@ -1,6 +1,10 @@
+import json
+import os
 from bs4 import BeautifulSoup
 import re
-from typing import List
+from typing import List, Tuple
+
+from haystack import Document
 
 
 def html_to_text_chunks(html_str: str) -> List[str]:
@@ -9,7 +13,7 @@ def html_to_text_chunks(html_str: str) -> List[str]:
 
     The logic is not exhaustive and currently only extracts clean text from paragraph and list items.
     All other tags are returned as strings.
-    
+
     Args:
         html_str (str): The HTML content of a Wikipedia page as a string.
 
@@ -58,3 +62,40 @@ def html_to_text_chunks(html_str: str) -> List[str]:
             chunks.append(str(tag))  # Add other tags as strings
 
     return chunks
+
+
+def get_documents_and_page_hierarchy(
+    filepath: str, page_title: str, page_filename: str
+) -> Tuple[List[Document], dict]:
+    """
+    Extracts the documents and hierarchy of a page from the stored chunks in the .metadata/chunk/{page_filename}.json file.
+    """
+    page_filename_wo_ext = os.path.splitext(page_filename)[0]   # Remove file extension (*.html)
+    chunk_filepath = os.path.join(
+        filepath, ".metadata/chunk", f"{page_filename_wo_ext}.json"
+    )
+    if not os.path.exists(chunk_filepath):
+        raise FileNotFoundError(f"The file '{chunk_filepath}' does not exist.")
+
+    with open(chunk_filepath, "r") as file:
+        data = json.load(file)
+
+    if not "splitter" in data:
+        raise KeyError(
+            f"The 'splitter' key is missing in the chunk file {chunk_filepath}."
+        )
+    if not "documents" in data["splitter"]:
+        raise KeyError(
+            f"The 'documents' key is missing in the 'splitter' key in the chunk file {chunk_filepath}."
+        )
+    if not "hierarchy" in data["splitter"]:
+        raise KeyError(
+            f"The 'hierarchy' key is missing in the 'splitter' key in the chunk file {chunk_filepath}."
+        )
+
+    documents = [
+        Document.from_dict(doc) for doc in data["splitter"]["documents"]
+    ]  # convert dict to Haystack Document object
+    hierarchy = data["splitter"]["hierarchy"][page_title]
+
+    return documents, hierarchy
