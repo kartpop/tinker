@@ -172,6 +172,12 @@ class Indexer:
             self.category_graph_creator.create_category_to_page_relationship(
                 category, page_title
             )
+            
+        categories_dirname_set = {
+            dir.name
+            for dir in Path(filepath).iterdir()
+            if dir.is_dir() and dir.name != ".metadata"
+        }
 
         subcategories = title_pathname["categories"]
         for subcategory_title, subcategory_path in subcategories.items():
@@ -180,6 +186,12 @@ class Indexer:
             self.category_graph_creator.create_category_to_subcategory_relationship(
                 category, subcategory_title
             )
+            # Create the category -> subcategory relationship as above.
+            # But if the subcategory's data is not available under this category, skip recursive call.
+            # This will happen when a subcategory has more than one parent category,
+            # in which case its data will only be handled by one parent category (whichever encounters it first).
+            if subcategory_path not in categories_dirname_set:
+                continue
             subcategory_path = os.path.join(filepath, subcategory_path)
             self.build_category_graph(subcategory_title, subcategory_path)
 

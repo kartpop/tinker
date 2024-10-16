@@ -53,11 +53,16 @@ class Downloader:
 
             pages = title_pathname["pages"]
             for page_title, page_filename in pages.items():
-                if self.redis.sismember("downloaded_pages", page_title):
-                    continue
-                download_page(page_title, page_filename, filepath)
-                num_total_pages_downloaded += 1
-                self.redis.sadd("downloaded_pages", page_title)
+                try:
+                    if self.redis.sismember("downloaded_pages", page_title):
+                        continue
+                    download_page(page_title, page_filename, filepath)
+                    num_total_pages_downloaded += 1
+                    self.redis.sadd("downloaded_pages", page_title)
+                except Exception as e:
+                    self.logger.error(
+                        f"Error downloading page {page_title}: {e}", exc_info=True
+                    )
 
             if num_total_pages_downloaded > 0:
                 category_pages_downloaded[category] = num_total_pages_downloaded

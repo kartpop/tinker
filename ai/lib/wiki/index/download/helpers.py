@@ -29,7 +29,7 @@ def get_wiki_category_members(category: str, filepath: str) -> list:
 
     if "query" not in response_data or "categorymembers" not in response_data["query"]:
         raise KeyError(
-            "'query' and 'categorymembers' keys must be present in the response data"
+            f"'query' or 'categorymembers' keys are not present in the response data for category: {category}, filepath: {filepath}"
         )
 
     return response_data["query"]["categorymembers"]
@@ -70,7 +70,7 @@ def get_title_pathname_map(
     """
     metadata_download_path = os.path.join(filepath, ".metadata/download")
     if not os.path.exists(metadata_download_path) and not create:
-        raise FileNotFoundError("Metadata download path does not exist.")
+        raise FileNotFoundError(f"Metadata download path does not exist at {filepath}.")
 
     title_pathname_filepath = os.path.join(
         metadata_download_path, "title_pathname.json"

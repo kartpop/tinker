@@ -64,6 +64,7 @@ class Neo4jPageGraphCreator:
             MATCH (parent:{parent_type} {{uuid: $parent_uuid}})
             MERGE (s{section_labels} {{name: $name, parent_uuid: $parent_uuid}})
             ON CREATE SET s.uuid = $uuid
+            MERGE (parent)-[:HAS_SECTION]->(s)
             RETURN s.uuid AS section_uuid
             """
             result = session.run(

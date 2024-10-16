@@ -73,25 +73,25 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /aux/data/wiki/v100/redis
+      device: /aux/data/wiki/v3000/redis
 
   elasticsearch_data:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /aux/data/wiki/v100/elasticsearch
+      device: /aux/data/wiki/v3000/elasticsearch
 
   weaviate_data:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /aux/data/wiki/v100/weaviate
+      device: /aux/data/wiki/v3000/weaviate
 
   neo4j_data:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /aux/data/wiki/v100/neo4j
+      device: /aux/data/wiki/v3000/neo4j
