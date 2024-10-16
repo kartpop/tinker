@@ -20,6 +20,10 @@ from lib.wiki.index.graph.page_graph_creator import Neo4jPageGraphCreator
 from lib.wiki.index.graph.category_graph_creator import Neo4jCategoryGraphCreator
 
 
+class IndexerException(Exception):
+    pass
+
+
 class Indexer:
     def __init__(
         self,
@@ -177,9 +181,7 @@ class Indexer:
                 category, subcategory_title
             )
             subcategory_path = os.path.join(filepath, subcategory_path)
-            self.build_category_graph(
-                subcategory_title, subcategory_path
-            )
+            self.build_category_graph(subcategory_title, subcategory_path)
 
     def index_wiki_data(
         self, category: str, filepath: str, category_pages_indexed: Dict[str, int]
@@ -197,8 +199,4 @@ class Indexer:
             return num_total_pages_indexed
 
         except Exception as e:
-            self.logger.error(
-                f"Error indexing data for category {category}: {e}",
-                exc_info=True,
-            )
-            return -1
+            raise IndexerException(f"Error indexing data for category {category}: {e}")

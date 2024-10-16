@@ -9,6 +9,10 @@ from lib.wiki.index.download.helpers import (
 )
 
 
+class DownloaderException(Exception):
+    pass
+
+
 class Downloader:
     def __init__(self, logger: logging.Logger, redis_client: redis.Redis):
         self.logger = logger
@@ -76,8 +80,6 @@ class Downloader:
             return num_total_pages_downloaded
 
         except Exception as e:
-            self.logger.error(
-                f"Error downloading data for category {category}: {e}",
-                exc_info=True,
+            raise DownloaderException(
+                f"Error downloading data for category {category}: {e}"
             )
-            return -1

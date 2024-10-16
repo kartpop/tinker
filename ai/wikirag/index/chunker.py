@@ -10,6 +10,10 @@ from lib.wiki.index.chunk.wiki_page_chunker import WikiPageChunker
 from lib.wiki.index.download.helpers import get_title_pathname_map
 
 
+class ChunkerException(Exception):
+    pass
+
+
 class Chunker:
     def __init__(self, logger: logging.Logger, redis_client: redis.Redis):
         self.logger = logger
@@ -67,9 +71,9 @@ class Chunker:
         self, category: str, filepath: str, category_pages_chunked: Dict[str, int]
     ) -> int:
         """
-        Chunks wiki data for all pages in a category and its subcategories. 
-        
-        Downloaded wiki data is accessed from the .metadata/download directory in the category filepath. 
+        Chunks wiki data for all pages in a category and its subcategories.
+
+        Downloaded wiki data is accessed from the .metadata/download directory in the category filepath.
         Chunks and hierarchy information is stored in the .metadata/chunk directory.
         """
         try:
@@ -112,8 +116,4 @@ class Chunker:
             return num_total_pages_chunked
 
         except Exception as e:
-            self.logger.error(
-                f"Error chunking data for category {category}: {e}",
-                exc_info=True,
-            )
-            return -1
+            raise ChunkerException(f"Error chunking data for category {category}: {e}")
