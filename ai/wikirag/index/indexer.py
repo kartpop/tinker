@@ -42,6 +42,8 @@ class Indexer:
         self.e_writer = DocumentWriter(
             document_store=self.e_store, policy=DuplicatePolicy.SKIP
         )
+        self.page_graph_creator = page_graph_creator
+        self.category_graph_creator = category_graph_creator
 
     def store_documents_elasticsearch(self, documents: List[Document]) -> None:
         """
@@ -106,7 +108,7 @@ class Indexer:
         - Neo4j: for graph search (list of Document objects are stored as Chunk type nodes and Section, Page, Category type nodes
         are created to represent the structure of the data)
         """
-        title_pathname = get_title_pathname_map(filepath)
+        title_pathname = get_title_pathname_map(category, filepath)
 
         pages_filename_set = {file.name for file in Path(filepath).glob("*.html")}
         categories_dirname_set = {
@@ -157,7 +159,7 @@ class Indexer:
         Creates a graph representation of the category and connections to its subcategories and pages. The graph is created
         on top of the individual page hierarchy graphs already existing in Neo4j.
         """
-        title_pathname = get_title_pathname_map(filepath)
+        title_pathname = get_title_pathname_map(category, filepath)
 
         pages = title_pathname["pages"]
         for page_title in pages:
@@ -176,28 +178,27 @@ class Indexer:
             )
             subcategory_path = os.path.join(filepath, subcategory_path)
             self.build_category_graph(
-                subcategory_title, subcategory_path, self.category_graph_creator
+                subcategory_title, subcategory_path
             )
 
     def index_wiki_data(
-        self, category: str, filepath: str
-    ) -> Tuple[int, Dict[str, int]]:
+        self, category: str, filepath: str, category_pages_indexed: Dict[str, int]
+    ) -> int:
         """
         Indexes the wiki data for a category and its subcategories. The data is indexed in ElasticsearchDocumentStore,
         WeaviateDocumentStore, and Neo4j. The graph representation of the category and its subcategories is created in Neo4j.
         """
         try:
-            category_pages_indexed = {}
             num_total_pages_indexed = self.index_wiki_pages(
                 category, filepath, category_pages_indexed
             )
             self.build_category_graph(category, filepath)
 
-            return num_total_pages_indexed, category_pages_indexed
+            return num_total_pages_indexed
 
         except Exception as e:
             self.logger.error(
                 f"Error indexing data for category {category}: {e}",
                 exc_info=True,
             )
-            return -1, {}
+            return -1
