@@ -1,4 +1,11 @@
+# Ignore Python cache directories
 __pycache__
 
+# Ignore log files
 logs
+
+# Ignore environment variable files
 .env
+
+# Ignore Jupyter Notebook files recursively
+**/*.ipynb

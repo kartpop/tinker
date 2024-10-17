@@ -9,8 +9,8 @@ wiki:
 
 index:
   category: "Dinosaurs"
-  max_depth: 100 # maximum depth to visit in wikipedia category tree (2, 100); depth 2 ~= 100 pages, depth 100 ~= 3000 pages (all pages in the Dinosaurs category)
-  filepath: "/aux/data/wiki/v3000/Dinosaurs" # if max_depth is 2, set filepath to "data/v100/Dinosaurs" and if max_depth is 100, set filepath to "data/v3000/Dinosaurs"
+  max_depth: 100 # max depth of the category tree to be indexed; Wikipedia category tree depth generally doesn't exceed 15-20
+  filepath: "/aux/data/wiki/v3000/Dinosaurs"
   log_filepath: "/aux/data/wiki/v3000/logs/index/"
 
   # Pages or categories having the following keywords/phrases as substring will be excluded from the index
@@ -18,5 +18,8 @@ index:
     - "list of" # lists are not properly handled currently, will visit them later
     - "lists of"
     - "bird" # birds are included in the Dinosaurs wikipedia category, but we don't want to index them
+
+rag:
+  log_filepath: "/aux/data/wiki/v3000/logs/rag/"
 
 embedding_model: "text-embedding-3-small"

@@ -19,6 +19,26 @@ from lib.wiki.index.graph.page_graph_creator import Neo4jPageGraphCreator
 from lib.wiki.index.graph.category_graph_creator import Neo4jCategoryGraphCreator
 
 
+class Resources:
+    def __init__(
+        self,
+        redis_client: redis.Redis,
+        w_store: WeaviateDocumentStore,
+        e_store: ElasticsearchDocumentStore,
+        graph_creator_driver: GraphDatabase.driver,
+    ):
+        self.redis_client = redis_client
+        self.w_store = w_store
+        self.e_store = e_store
+        self.graph_creator_driver = graph_creator_driver
+
+    def close(self):
+        self.redis_client.close()
+        self.w_store.client.close()
+        self.e_store.client.close()
+        self.graph_creator_driver.close()
+
+
 def setup_logging():
     if not os.path.exists("logs"):
         os.makedirs("logs")
@@ -48,34 +68,26 @@ def initialize_resources():
     NEO4J_PORT = int(os.getenv("NEO4J_PORT"))
     NEO4J_USER = os.getenv("NEO4J_USER")
     NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
-
-    WEAVIATE_HOST = os.getenv("WEAVIATE_HOST")
-    WEAVIATE_PORT = int(os.getenv("WEAVIATE_PORT"))
-
-    ELASTICSEARCH_HOST = os.getenv("ELASTICSEARCH_HOST")
-    ELASTICSEARCH_PORT = int(os.getenv("ELASTICSEARCH_PORT"))
-
-    embedding_model = config.get("embedding_model", "text-embedding-3-small")
-    embedder = OpenAIDocumentEmbedder(model=embedding_model)
-    w_store = WeaviateDocumentStore(url=f"http://{WEAVIATE_HOST}:{WEAVIATE_PORT}")
-    e_store = ElasticsearchDocumentStore(
-        hosts=[f"http://{ELASTICSEARCH_HOST}:{ELASTICSEARCH_PORT}"]
-    )
     graph_creator_driver = GraphDatabase.driver(
         f"bolt://{NEO4J_HOST}:{NEO4J_PORT}", auth=(NEO4J_USER, NEO4J_PASSWORD)
     )
-    page_graph_creator = Neo4jPageGraphCreator(graph_creator_driver)
-    category_graph_creator = Neo4jCategoryGraphCreator(graph_creator_driver)
 
-    return {
-        "redis_client": redis_client,
-        "w_store": w_store,
-        "e_store": e_store,
-        "graph_creator_driver": graph_creator_driver,
-        "page_graph_creator": page_graph_creator,
-        "category_graph_creator": category_graph_creator,
-        "embedder": embedder,
-    }
+    WEAVIATE_HOST = os.getenv("WEAVIATE_HOST")
+    WEAVIATE_PORT = int(os.getenv("WEAVIATE_PORT"))
+    w_store = WeaviateDocumentStore(url=f"http://{WEAVIATE_HOST}:{WEAVIATE_PORT}")
+
+    ELASTICSEARCH_HOST = os.getenv("ELASTICSEARCH_HOST")
+    ELASTICSEARCH_PORT = int(os.getenv("ELASTICSEARCH_PORT"))
+    e_store = ElasticsearchDocumentStore(
+        hosts=[f"http://{ELASTICSEARCH_HOST}:{ELASTICSEARCH_PORT}"]
+    )
+
+    return Resources(
+        redis_client,
+        w_store,
+        e_store,
+        graph_creator_driver,
+    )
 
 
 def run_indexing(logger, resources):
@@ -83,7 +95,7 @@ def run_indexing(logger, resources):
     filepath = config.get("index.filepath", f"/aux/data/wiki/v100/Dinosaurs")
 
     # Download wiki data
-    downloader = Downloader(logger, resources["redis_client"])
+    downloader = Downloader(logger, resources.redis_client)
     logger.info(f"Downloading category members for {category} ...")
     category_pages_downloaded = {}
     exclude_keywords = config.get(
@@ -98,7 +110,7 @@ def run_indexing(logger, resources):
     )
 
     # Chunk wiki data
-    chunker = Chunker(logger, resources["redis_client"])
+    chunker = Chunker(logger, resources.redis_client)
     logger.info(f"Chunking category members for {category} ...")
     category_pages_chunked = {}
     num_pages_chunked = chunker.chunk_wiki_data(
@@ -110,14 +122,18 @@ def run_indexing(logger, resources):
 
     # Index wiki data
     logger.info(f"Indexing category members for {category} ...")
+    embedding_model = config.get("embedding_model", "text-embedding-3-small")
+    embedder = OpenAIDocumentEmbedder(model=embedding_model)
+    page_graph_creator = Neo4jPageGraphCreator(resources.graph_creator_driver)
+    category_graph_creator = Neo4jCategoryGraphCreator(resources.graph_creator_driver)
     indexer = Indexer(
         logger,
-        resources["redis_client"],
-        resources["embedder"],
-        resources["w_store"],
-        resources["e_store"],
-        resources["page_graph_creator"],
-        resources["category_graph_creator"],
+        resources.redis_client,
+        embedder,
+        resources.w_store,
+        resources.e_store,
+        page_graph_creator,
+        category_graph_creator,
     )
     category_pages_indexed = {}
     num_pages_indexed = indexer.index_wiki_data(
@@ -143,10 +159,7 @@ def main():
         logger.exception(f"Unknown error occurred: {e}", exc_info=True)
     finally:
         logger.info("Closing resources.")
-        resources["redis_client"].close()
-        resources["w_store"].client.close()
-        resources["e_store"].client.close()
-        resources["graph_creator_driver"].close()
+        resources.close()
 
 
 if __name__ == "__main__":
