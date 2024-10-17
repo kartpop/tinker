@@ -12,6 +12,12 @@ To start Redis, Weaviate, Elasticsearch, Neo4j in Docker, run the following in t
 docker compose -f docker-compose.databases.yml up -d
 ```
 
+Stop databases:
+
+```sh
+docker compose -f docker-compose.databases.yml down
+```
+
 ***Tip***
 - Run ```docker compose -f docker-compose.databases.yml down -v``` when switching between different datasets (v100 and v3000). As the volume name is same (because a common docker-compose.yml is used), the volume first needs to be removed before plugging in a different device file path to it.
 
