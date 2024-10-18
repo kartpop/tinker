@@ -29,8 +29,8 @@ class Neo4jPageGraphCreator:
         Creates a graph in Neo4j representing a page and its sections and chunks.
         
         Creates the following nodes and relationships:
-        - Page: HAS_CHUNK -> Chunk, FIRST_CHUNK -> Chunk, FIRST_SECTION -> Section, NEXT_SECTION -> Section
-        - Section: HAS_CHUNK -> Chunk, FIRST_CHUNK -> Chunk, NEXT_SECTION -> Section
+        - Page: HAS_CHUNK -> Chunk, FIRST_CHUNK -> Chunk, FIRST_SECTION -> Section, HAS_SECTION -> Section
+        - Section: HAS_CHUNK -> Chunk, FIRST_CHUNK -> Chunk, NEXT_SECTION -> Section, HAS_SECTION -> Section
         - Chunk: NEXT_CHUNK -> Chunk
         """
         with self.driver.session() as session:

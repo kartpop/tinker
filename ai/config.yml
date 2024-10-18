@@ -19,5 +19,13 @@ index:
 
 rag:
   log_filepath: "/aux/data/wiki/v3000/logs/rag/"
+  qa_logs_filepath: "/aux/data/wiki/v3000/logs/qa/"
+  hybrid_join_mode: "reciprocal_rank_fusion"
+  top_k:
+    embedding_retriever: 3
+    bm25_retriever: 3
+    document_joiner: 6
 
-embedding_model: "text-embedding-3-small"
+openai:
+  embedding_model: "text-embedding-3-small"
+  llm_model: "gpt-4o-mini"

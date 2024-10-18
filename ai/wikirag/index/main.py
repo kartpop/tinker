@@ -122,7 +122,7 @@ def run_indexing(logger, resources):
 
     # Index wiki data
     logger.info(f"Indexing category members for {category} ...")
-    embedding_model = config.get("embedding_model", "text-embedding-3-small")
+    embedding_model = config.get("openai.embedding_model", "text-embedding-3-small")
     embedder = OpenAIDocumentEmbedder(model=embedding_model)
     page_graph_creator = Neo4jPageGraphCreator(resources.graph_creator_driver)
     category_graph_creator = Neo4jCategoryGraphCreator(resources.graph_creator_driver)

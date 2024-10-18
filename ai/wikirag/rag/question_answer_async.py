@@ -1,3 +1,4 @@
+import asyncio
 import json
 from lib.wiki.rag.models.hierarchy_path import HierarchyPathData
 from lib.wiki.rag.models.phase_2_qa import Phase2QA
@@ -6,12 +7,16 @@ from lib.wiki.rag.pipelines.hybrid_pipeline import HybridPipeline
 from lib.wiki.rag.models.phase_1_qa import Phase1QA
 
 
-class QuestionAnswer:
+class QuestionAnswerAsync:
     def __init__(self, hybrid_pipeline: HybridPipeline, graph_pipeline: GraphPipeline):
         self.hybrid_pipeline = hybrid_pipeline.build()
         self.graph_pipeline = graph_pipeline.build()
 
-    def question_answer(self, question: str) -> dict:
+    async def run_sync(self, func, *args):
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, func, *args)
+
+    async def question_answer(self, question: str) -> dict:
         """
         Runs the RAG pipeline to answer the given question.
 
@@ -29,9 +34,10 @@ class QuestionAnswer:
             },
         }
 
-        hybrid_result_dict = self.hybrid_pipeline.run(
-            data=input_data,
-            include_outputs_from={
+        hybrid_result_dict = await self.run_sync(
+            self.hybrid_pipeline.run,
+            input_data,
+            {
                 "text_embedder",
                 "weaviate_retriever",
                 "elasticsearch_retriever",
@@ -78,9 +84,10 @@ class QuestionAnswer:
                 },
             }
 
-            result = self.graph_pipeline.run(
-                data=input_data,
-                include_outputs_from={
+            result = await self.run_sync(
+                self.graph_pipeline.run,
+                input_data,
+                {
                     "wiki_hierarchy_builder",
                     "hierarchy_prompt_builder",
                     "hierarchy_generator",
@@ -99,7 +106,9 @@ class QuestionAnswer:
                 "metadata": metadata,
             }
 
-    def build_answer_with_reference(self, answer: dict, context_docs: dict) -> dict:
+    async def build_answer_with_reference(
+        self, answer: dict, context_docs: dict
+    ) -> dict:
         """
         Extracts the answer and references from the given answer object.
         """
@@ -128,7 +137,7 @@ class QuestionAnswer:
             references.append(build_metadata_for_doc(ref_doc))
         return {"text": answer_obj.answer, "references": references}
 
-    def ask(self, question: str) -> dict:
+    async def ask(self, question: str) -> dict:
         """
         Runs the RAG pipeline to answer the given question and returns the answer with references.
 
@@ -167,8 +176,8 @@ class QuestionAnswer:
             }
         }
         """
-        qa_response = self.question_answer(question)
-        answer_with_reference = self.build_answer_with_reference(
+        qa_response = await self.question_answer(question)
+        answer_with_reference = await self.build_answer_with_reference(
             qa_response["answer"], qa_response["context_docs"]
         )
         return {"answer": answer_with_reference, "metadata": qa_response["metadata"]}
