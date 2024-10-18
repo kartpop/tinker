@@ -63,5 +63,5 @@ Answer:
 {{ query }}
 
 ### Answer:
-{{p1_qa_schema}}
+{{phase_1_qa_schema}}
 """

@@ -12,9 +12,7 @@ index:
   max_depth: 100 # max depth of the category tree to be indexed; Wikipedia category tree depth generally doesn't exceed 15-20
   filepath: "/aux/data/wiki/v3000/Dinosaurs"
   log_filepath: "/aux/data/wiki/v3000/logs/index/"
-
-  # Pages or categories having the following keywords/phrases as substring will be excluded from the index
-  exclude_keywords: # case-insensitive
+  exclude_keywords: # case-insensitive; page or category will be excluded if any of these keywords/phrases are present in the title
     - "list of" # lists are not properly handled currently, will visit them later
     - "lists of"
     - "bird" # birds are included in the Dinosaurs wikipedia category, but we don't want to index them
