@@ -153,7 +153,7 @@ def initialize_graph_pipeline():
     elasticsearch_store = ElasticsearchDocumentStore(
         hosts=[f"http://{ELASTICSEARCH_HOST}:{ELASTICSEARCH_PORT}"]
     )
-    wiki_hierarchy_builder = WikiHierarchyBuilder(graphDatabaseDriver=graph_driver)
+    wiki_hierarchy_builder = WikiHierarchyBuilder(graphDatabaseDriver=graph_driver, logger=logger)
     hierarchy_prompt_builder = PromptBuilder(template=phase_2_hierarchy_template)
     hierarchy_generator = OpenAIGenerator(model=LLM_MODEL)
     wiki_context_creator = WikiContextCreator(document_store=elasticsearch_store, logger=logger)
@@ -251,7 +251,12 @@ async def ask(q: Question):
         log_filename = (
             f"{qa_logs_filepath}{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         )
-        asyncio.create_task(log_dict_as_json(log_filename, ask_response))
+        qa_json = {
+            "question": question,
+            "answer": ask_response["answer"],
+            "metadata": ask_response["metadata"],
+        }
+        asyncio.create_task(log_dict_as_json(log_filename, qa_json))
 
         return response
     except Exception as e:

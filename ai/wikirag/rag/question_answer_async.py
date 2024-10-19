@@ -1,7 +1,7 @@
 import asyncio
 import json
 import logging
-from lib.wiki.rag.helpers.log_helpers import strip_embeddings_from_dict
+from lib.wiki.rag.helpers.log_helpers import custom_serializer, strip_embeddings_from_dict
 from lib.wiki.rag.models.hierarchy_path import HierarchyPathData
 from lib.wiki.rag.models.phase_2_qa import Phase2QA
 from lib.wiki.rag.pipelines.graph_pipeline import GraphPipeline
@@ -93,18 +93,24 @@ class QuestionAnswerAsync:
             
             self.logger.debug("Running graph pipeline")
 
-            result = await self.run_sync(
-                self.graph_pipeline.run,
-                input_data,
-                {
-                    "wiki_hierarchy_builder",
-                    "hierarchy_prompt_builder",
-                    "hierarchy_generator",
-                    "wiki_context_creator",
-                    "phase_2_qa_prompt_builder",
-                    "phase_2_qa_generator",
-                },
-            )
+            try:
+                result = await self.run_sync(
+                    self.graph_pipeline.run,
+                    input_data,
+                    {
+                        "wiki_hierarchy_builder",
+                        "hierarchy_prompt_builder",
+                        "hierarchy_generator",
+                        "wiki_context_creator",
+                        "phase_2_qa_prompt_builder",
+                        "phase_2_qa_generator",
+                    },
+                )
+            except Exception as e:
+                self.logger.error(f"\nGraph pipeline run failed, find error details below after Phase-1 results.")
+                strip_embeddings_from_dict(hybrid_result_dict)
+                self.logger.info(f"\nPhase-1 results: {json.dumps(hybrid_result_dict, default=custom_serializer, indent=4)}")
+                raise
             
             self.logger.debug("Graph pipeline completed, result: %s", strip_embeddings_from_dict(result))
 
