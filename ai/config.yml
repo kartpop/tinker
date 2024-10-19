@@ -1,5 +1,5 @@
 logging:
-  level: INFO
+  level: DEBUG
   format: "%(asctime)s - %(levelname)s - %(message)s"
 
 wiki:
@@ -22,9 +22,9 @@ rag:
   qa_logs_filepath: "/aux/data/wiki/v3000/logs/qa/"
   hybrid_join_mode: "reciprocal_rank_fusion"
   top_k:
-    embedding_retriever: 3
+    embedding_retriever: 9
     bm25_retriever: 3
-    document_joiner: 6
+    document_joiner: 12
 
 openai:
   embedding_model: "text-embedding-3-small"

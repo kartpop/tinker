@@ -4,6 +4,11 @@ The keys at the top level represent the Wikipedia page titles, and the correspon
 
 **Objective**: Given the question and the provided page hierarchy(s), select the most relevant path or paths that likely contain the answer. Create a JSON object using schema provided below.
 
+THE PATH OR PATHS SHOULD STRICTLY DERIVE FROM THE HIERARCHY STRUCTURE PROVIDED IN THE CONTEXT. DO NOT MAKE UP NEW PATHS. 
+STRICTLY FOLLOW THE SCHEMA: 
+
+{{hierarchy_path_schema}}
+
 ### Key Guidelines:
 - Your response should trace the hierarchy to the section that best answers the question.
 - You may not need to go to the lowest level of the hierarchy. For broad questions, selecting a higher-level section is appropriate.

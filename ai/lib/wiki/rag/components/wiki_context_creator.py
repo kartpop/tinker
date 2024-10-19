@@ -1,3 +1,4 @@
+import logging
 from typing import List
 from haystack import component
 import json
@@ -12,8 +13,9 @@ from haystack import Document
 
 @component
 class WikiContextCreator:
-    def __init__(self, document_store):
+    def __init__(self, document_store, logger: logging.Logger):
         self.document_store = document_store
+        self.logger = logger
         
     def extract_path_list(self, hierarchy_paths: List[str]) -> List[List[str]]:
         path_list = []
@@ -33,6 +35,8 @@ class WikiContextCreator:
     @component.output_types(documents=List[Document])
     def run(self, hierarchy_paths: List[str], chunks_hierarchy: dict):
         context_list = []
+        
+        self.logger.debug(f"\n\nExtracting context from hierarchy paths: {hierarchy_paths}\n, chunks hierarchy: {chunks_hierarchy}\n")
         
         path_list = self.extract_path_list(hierarchy_paths)
         for path in path_list:

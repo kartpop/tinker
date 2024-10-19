@@ -1,7 +1,13 @@
 phase_2_qa_template = """
-Answer the question only using the following context. Do not use any external information. If the answer is not present in the context, respond with "I don't know." If the answer is only partially covered, provide the partial answer and mention explicitly that it may be incomplete.
+Answer the question using the following context. Try not use any external information. 
+
+If the answer is only partially covered, provide the partial answer and mention explicitly that it may be incomplete.
 
 **Answer only using below schema. Include the document IDs from which the answer is extracted. Each document in the given context starts with '---- Document <doc_index> ----'. The document ID should be the value of <doc_index>.**
+
+THE ANSWER SCHEMA SHOULD BE STRICTLY FOLLOWED. DO NOT CHANGE THE ANSWER SCHEMA.
+
+{{phase_2_qa_schema}}
 
 ### Example:
 ----------------------------------------

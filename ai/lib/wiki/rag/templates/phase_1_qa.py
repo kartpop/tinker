@@ -1,5 +1,9 @@
 phase_1_qa_template = """
-Answer the question using **only** the provided context. Do not use any external information beyond the context below. Answer only using below schema.
+Answer the question using **only** the provided context. Do not use any external information beyond the context below.
+
+THE ANSWER SCHEMA SHOULD BE STRICTLY FOLLOWED. DO NOT CHANGE THE ANSWER SCHEMA.
+
+{{phase_1_qa_schema}}
 
 ### Key Guidelines:
 The answer schema has four fields:

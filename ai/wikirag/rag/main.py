@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 from datetime import datetime
 import json
@@ -25,6 +26,7 @@ from haystack.components.generators import OpenAIGenerator
 from pydantic import BaseModel
 from lib.wiki.rag.components.wiki_context_creator import WikiContextCreator
 from lib.wiki.rag.components.wiki_hierarchy_builder import WikiHierarchyBuilder
+from lib.wiki.rag.helpers.log_helpers import log_dict_as_json, strip_embeddings_from_dict
 from lib.wiki.rag.pipelines.graph_pipeline import GraphPipeline
 from lib.wiki.rag.pipelines.hybrid_pipeline import HybridPipeline
 from lib.wiki.rag.templates.phase_1_qa import phase_1_qa_template
@@ -80,6 +82,18 @@ def initialize_hybrid_pipeline():
     TOP_K_BM25_RETRIEVER = config.get("rag.top_k.bm25_retriever", 3)
     HYBRID_JOIN_MODE = config.get("rag.hybrid_join_mode", "reciprocal_rank_fusion")
 
+    # Log all config and environment variables
+    logger.debug("\nHybrid Pipeline - Configuration and Environment Variables:")
+    logger.debug(f"WEAVIATE_HOST: {WEAVIATE_HOST}")
+    logger.debug(f"WEAVIATE_PORT: {WEAVIATE_PORT}")
+    logger.debug(f"ELASTICSEARCH_HOST: {ELASTICSEARCH_HOST}")
+    logger.debug(f"ELASTICSEARCH_PORT: {ELASTICSEARCH_PORT}")
+    logger.debug(f"EMBEDDING_MODEL: {EMBEDDING_MODEL}")
+    logger.debug(f"LLM_MODEL: {LLM_MODEL}")
+    logger.debug(f"TOP_K_EMBEDDING_RETRIEVER: {TOP_K_EMBEDDING_RETRIEVER}")
+    logger.debug(f"TOP_K_BM25_RETRIEVER: {TOP_K_BM25_RETRIEVER}")
+    logger.debug(f"HYBRID_JOIN_MODE: {HYBRID_JOIN_MODE}")
+
     document_embedder = OpenAIDocumentEmbedder(model=EMBEDDING_MODEL)
     text_embedder = OpenAITextEmbedder(model=EMBEDDING_MODEL)
     weaviate_store = WeaviateDocumentStore(
@@ -124,6 +138,14 @@ def initialize_graph_pipeline():
     NEO4J_PORT = int(os.getenv("NEO4J_PORT"))
     NEO4J_USER = os.getenv("NEO4J_USER")
     NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
+    
+    logger.debug("\nGraph Pipeline - Configuration and Environment Variables:")
+    logger.debug(f"ELASTICSEARCH_HOST: {ELASTICSEARCH_HOST}")
+    logger.debug(f"ELASTICSEARCH_PORT: {ELASTICSEARCH_PORT}")
+    logger.debug(f"LLM_MODEL: {LLM_MODEL}")
+    logger.debug(f"NEO4J_HOST: {NEO4J_HOST}")
+    logger.debug(f"NEO4J_PORT: {NEO4J_PORT}")
+    logger.debug(f"NEO4J_USER: {NEO4J_USER}")
 
     graph_driver = GraphDatabase.driver(
         f"bolt://{NEO4J_HOST}:{NEO4J_PORT}", auth=(NEO4J_USER, NEO4J_PASSWORD)
@@ -134,7 +156,7 @@ def initialize_graph_pipeline():
     wiki_hierarchy_builder = WikiHierarchyBuilder(graphDatabaseDriver=graph_driver)
     hierarchy_prompt_builder = PromptBuilder(template=phase_2_hierarchy_template)
     hierarchy_generator = OpenAIGenerator(model=LLM_MODEL)
-    wiki_context_creator = WikiContextCreator(document_store=elasticsearch_store)
+    wiki_context_creator = WikiContextCreator(document_store=elasticsearch_store, logger=logger)
     phase_2_qa_prompt_builder = PromptBuilder(template=phase_2_qa_template)
     phase_2_qa_generator = OpenAIGenerator(model=LLM_MODEL)
 
@@ -167,8 +189,8 @@ def setup_logging():
     if not os.path.exists(qa_logs_filepath):
         os.makedirs(qa_logs_filepath, exist_ok=True)
 
-    log_level = config.get("level", "INFO")
-    log_format = config.get("format", "%(asctime)s - %(levelname)s - %(message)s")
+    log_level = config.get("logging.level", "INFO")
+    log_format = config.get("logging.format", "%(asctime)s - %(levelname)s - %(message)s")
     logging.basicConfig(level=log_level, format=log_format)
     logger = logging.getLogger(__name__)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -182,12 +204,18 @@ def setup_logging():
 load_dotenv()
 setup_logging()
 
+# Test content tracing
+from haystack import tracing
+tracing.tracer.is_content_tracing_enabled = True
+# --------------------------------------------
+
 hybrid_pipeline, hybrid_pipeline_resources = initialize_hybrid_pipeline()
 graph_pipeline, graph_pipeline_resources = initialize_graph_pipeline()
 
 qna = QuestionAnswerAsync(
     hybrid_pipeline=hybrid_pipeline,
     graph_pipeline=graph_pipeline,
+    logger=logger,
 )
 
 logger.info("QuestionAnswer RAG pipeline initialized and ready for use.")
@@ -211,10 +239,10 @@ app = FastAPI(lifespan=lifespan)
 async def ask(q: Question):
     try:
         question = q.question
-        answer, meta = await qna.ask(question)  # Use await for the async method
+        ask_response = await qna.ask(question)  # Use await for the async method
 
         # Return the answer immediately
-        response = {"question": question, "answer": answer}
+        response = {"question": question, "answer": ask_response["answer"]}
 
         # Log the metadata asynchronously
         qa_logs_filepath = config.get(
@@ -223,9 +251,7 @@ async def ask(q: Question):
         log_filename = (
             f"{qa_logs_filepath}{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         )
-        async with aiofiles.open(log_filename, "w") as f:
-            log_data = {"question": question, "answer": answer, "meta": meta}
-            await f.write(json.dumps(log_data, indent=4))
+        asyncio.create_task(log_dict_as_json(log_filename, ask_response))
 
         return response
     except Exception as e:

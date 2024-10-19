@@ -1,5 +1,7 @@
 import asyncio
 import json
+import logging
+from lib.wiki.rag.helpers.log_helpers import strip_embeddings_from_dict
 from lib.wiki.rag.models.hierarchy_path import HierarchyPathData
 from lib.wiki.rag.models.phase_2_qa import Phase2QA
 from lib.wiki.rag.pipelines.graph_pipeline import GraphPipeline
@@ -8,9 +10,10 @@ from lib.wiki.rag.models.phase_1_qa import Phase1QA
 
 
 class QuestionAnswerAsync:
-    def __init__(self, hybrid_pipeline: HybridPipeline, graph_pipeline: GraphPipeline):
+    def __init__(self, hybrid_pipeline: HybridPipeline, graph_pipeline: GraphPipeline, logger: logging.Logger):
         self.hybrid_pipeline = hybrid_pipeline.build()
         self.graph_pipeline = graph_pipeline.build()
+        self.logger = logger
 
     async def run_sync(self, func, *args):
         loop = asyncio.get_event_loop()
@@ -34,6 +37,8 @@ class QuestionAnswerAsync:
             },
         }
 
+        self.logger.debug("Running hybrid pipeline")
+
         hybrid_result_dict = await self.run_sync(
             self.hybrid_pipeline.run,
             input_data,
@@ -46,6 +51,8 @@ class QuestionAnswerAsync:
                 "phase_1_qa_generator",
             },
         )
+
+        self.logger.debug("Hybrid pipeline completed, result: %s", strip_embeddings_from_dict(hybrid_result_dict))
 
         hybrid_replies_json = hybrid_result_dict["phase_1_qa_generator"]["replies"][0]
         hybrid_replies_dict = json.loads(hybrid_replies_json)
@@ -83,6 +90,8 @@ class QuestionAnswerAsync:
                     "query": question,
                 },
             }
+            
+            self.logger.debug("Running graph pipeline")
 
             result = await self.run_sync(
                 self.graph_pipeline.run,
@@ -96,6 +105,8 @@ class QuestionAnswerAsync:
                     "phase_2_qa_generator",
                 },
             )
+            
+            self.logger.debug("Graph pipeline completed, result: %s", strip_embeddings_from_dict(result))
 
             answer = {"text": result["phase_2_qa_generator"]["replies"][0], "phase": 2}
             context_docs = result["wiki_context_creator"]["documents"]
