@@ -50,9 +50,21 @@ type RequestData struct {
 	Question string `json:"question"`
 }
 
+type Reference struct {
+    Title string `json:"title"`
+    H2    string `json:"h2,omitempty"`
+    H3    string `json:"h3,omitempty"`
+    H4    string `json:"h4,omitempty"`
+}
+
+type Answer struct {
+    Text       string      `json:"text"`
+    References []Reference `json:"references"`
+}
+
 type ResponseData struct {
-	Response  string `json:"response"`
-	WikiTitle string `json:"wiki_title"`
+    Question string `json:"question"`
+    Answer   Answer `json:"answer"`
 }
 
 func askLlm(question string) ResponseData {

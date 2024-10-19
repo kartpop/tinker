@@ -2,16 +2,24 @@ import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-type message = {
+type Reference = {
+  title: string;
+  h2?: string;
+  h3?: string;
+  h4?: string;
+  url: string;
+};
+
+type Message = {
   src: string;
   text: string;
-  ref?: string | null;
+  refs?: Reference[];
 };
 
 export default function Argonk() {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [prompt, setPrompt] = useState("");
-  const [messages, setMessages] = useState<message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
     const ws = new WebSocket("ws://localhost:8080/ws");
@@ -22,18 +30,32 @@ export default function Argonk() {
 
     ws.onmessage = (event) => {
       console.log("Received message from agent:", event.data);
-
+    
       try {
         const data = JSON.parse(event.data);
-        const { response, wiki_title } = data;
-        // const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(
-        //   wiki_title
-        // )}`;
-        const wikiUrl = `https://en.wikipedia.org/wiki/${wiki_title.replace(/ /g, "_")}`;
-
+        const { answer } = data;
+        const { text, references } = answer;
+    
+        const formattedReferences = references.map((ref: { title: string; h2?: string; h3?: string; h4?: string }) => {
+          const { title, h2, h3, h4 } = ref;
+          const baseUrl = `https://en.wikipedia.org/wiki/${title.replace(/ /g, "_")}`;
+          let section = "";
+    
+          if (h4) {
+            section = h4.replace(/ /g, "_");
+          } else if (h3) {
+            section = h3.replace(/ /g, "_");
+          } else if (h2) {
+            section = h2.replace(/ /g, "_");
+          }
+    
+          const wikiUrl = section ? `${baseUrl}#${section}` : baseUrl;
+          return { ...ref, url: wikiUrl };
+        });
+    
         setMessages((prevMessages) => [
           ...prevMessages,
-          { src: "agent", text: response, ref: wikiUrl },
+          { src: "agent", text, refs: formattedReferences },
         ]);
       } catch (error) {
         console.error("Failed to parse message data:", error);
@@ -108,16 +130,20 @@ export default function Argonk() {
                 }}
               />
             </p>
-            {message.ref && (
-              <div>
-                <a
-                  href={message.ref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 text-sm break-words hover:underline"
-                >
-                  {message.ref}
-                </a>
+            {message.refs && message.refs.length > 0 && (
+              <div className="mt-2">
+                {message.refs.map((ref, refIndex) => (
+                  <div key={refIndex}>
+                    <a
+                      href={ref.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 text-sm break-words hover:underline"
+                    >
+                      {ref.url}
+                    </a>
+                  </div>
+                ))}
               </div>
             )}
           </div>

@@ -26,7 +26,10 @@ from haystack.components.generators import OpenAIGenerator
 from pydantic import BaseModel
 from lib.wiki.rag.components.wiki_context_creator import WikiContextCreator
 from lib.wiki.rag.components.wiki_hierarchy_builder import WikiHierarchyBuilder
-from lib.wiki.rag.helpers.log_helpers import log_dict_as_json, strip_embeddings_from_dict
+from lib.wiki.rag.helpers.log_helpers import (
+    log_dict_as_json,
+    strip_embeddings_from_dict,
+)
 from lib.wiki.rag.pipelines.graph_pipeline import GraphPipeline
 from lib.wiki.rag.pipelines.hybrid_pipeline import HybridPipeline
 from lib.wiki.rag.templates.phase_1_qa import phase_1_qa_template
@@ -138,7 +141,7 @@ def initialize_graph_pipeline():
     NEO4J_PORT = int(os.getenv("NEO4J_PORT"))
     NEO4J_USER = os.getenv("NEO4J_USER")
     NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
-    
+
     logger.debug("\nGraph Pipeline - Configuration and Environment Variables:")
     logger.debug(f"ELASTICSEARCH_HOST: {ELASTICSEARCH_HOST}")
     logger.debug(f"ELASTICSEARCH_PORT: {ELASTICSEARCH_PORT}")
@@ -153,10 +156,14 @@ def initialize_graph_pipeline():
     elasticsearch_store = ElasticsearchDocumentStore(
         hosts=[f"http://{ELASTICSEARCH_HOST}:{ELASTICSEARCH_PORT}"]
     )
-    wiki_hierarchy_builder = WikiHierarchyBuilder(graphDatabaseDriver=graph_driver, logger=logger)
+    wiki_hierarchy_builder = WikiHierarchyBuilder(
+        graphDatabaseDriver=graph_driver, logger=logger
+    )
     hierarchy_prompt_builder = PromptBuilder(template=phase_2_hierarchy_template)
     hierarchy_generator = OpenAIGenerator(model=LLM_MODEL)
-    wiki_context_creator = WikiContextCreator(document_store=elasticsearch_store, logger=logger)
+    wiki_context_creator = WikiContextCreator(
+        document_store=elasticsearch_store, logger=logger
+    )
     phase_2_qa_prompt_builder = PromptBuilder(template=phase_2_qa_template)
     phase_2_qa_generator = OpenAIGenerator(model=LLM_MODEL)
 
@@ -190,7 +197,9 @@ def setup_logging():
         os.makedirs(qa_logs_filepath, exist_ok=True)
 
     log_level = config.get("logging.level", "INFO")
-    log_format = config.get("logging.format", "%(asctime)s - %(levelname)s - %(message)s")
+    log_format = config.get(
+        "logging.format", "%(asctime)s - %(levelname)s - %(message)s"
+    )
     logging.basicConfig(level=log_level, format=log_format)
     logger = logging.getLogger(__name__)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -206,6 +215,7 @@ setup_logging()
 
 # Test content tracing
 from haystack import tracing
+
 tracing.tracer.is_content_tracing_enabled = True
 # --------------------------------------------
 
@@ -235,28 +245,30 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
+async def log_qna(question, ask_response):
+    qa_logs_filepath = config.get(
+        "rag.qa_logs_filepath", "/aux/data/wiki/v3000/logs/rag/qa/"
+    )
+    log_filename = f"{qa_logs_filepath}{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    qa_json = {
+        "question": question,
+        "answer": ask_response["answer"],
+        "metadata": ask_response["metadata"],
+    }
+    await log_dict_as_json(log_filename, qa_json)
+
+
 @app.post("/ask")
 async def ask(q: Question):
     try:
         question = q.question
-        ask_response = await qna.ask(question)  # Use await for the async method
 
-        # Return the answer immediately
+        ask_response = await qna.ask(question)
+
         response = {"question": question, "answer": ask_response["answer"]}
 
-        # Log the metadata asynchronously
-        qa_logs_filepath = config.get(
-            "rag.qa_logs_filepath", "/aux/data/wiki/v3000/logs/rag/qa/"
-        )
-        log_filename = (
-            f"{qa_logs_filepath}{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-        )
-        qa_json = {
-            "question": question,
-            "answer": ask_response["answer"],
-            "metadata": ask_response["metadata"],
-        }
-        asyncio.create_task(log_dict_as_json(log_filename, qa_json))
+        # Log the question-answer asynchonously
+        asyncio.create_task(log_qna(question, ask_response))
 
         return response
     except Exception as e:
