@@ -1,3 +1,5 @@
+### AI
+RAG, Agents etc.
 
 ## Setup
 
