@@ -1,4 +1,4 @@
-### AI
+# AI
 RAG, Agents etc.
 
 ## Setup
