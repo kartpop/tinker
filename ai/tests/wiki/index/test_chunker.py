@@ -1,16 +1,15 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from wikirag.index.chunker import Chunker
+from wiki.index.chunker import Chunker
 from pathlib import Path
-
-@patch("wikirag.index.chunker.Path.glob")
-@patch("wikirag.index.chunker.Path.iterdir")
+@patch("wiki.index.chunker.Path.glob")
+@patch("wiki.index.chunker.Path.iterdir")
 class TestChunker(unittest.TestCase):
-    @patch("wikirag.index.chunker.os.path.exists")
-    @patch("wikirag.index.chunker.os.makedirs")
-    @patch("wikirag.index.chunker.get_title_pathname_map")
-    @patch("wikirag.index.chunker.Chunker.chunk_page")
-    @patch("wikirag.index.chunker.redis.Redis")
+    @patch("wiki.index.chunker.os.path.exists")
+    @patch("wiki.index.chunker.os.makedirs")
+    @patch("wiki.index.chunker.get_title_pathname_map")
+    @patch("wiki.index.chunker.Chunker.chunk_page")
+    @patch("wiki.index.chunker.redis.Redis")
     def test_chunk_wiki_data(
         self,
         mock_redis_class,

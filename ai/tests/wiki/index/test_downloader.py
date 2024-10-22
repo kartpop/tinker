@@ -1,14 +1,14 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from wikirag.index.downloader import Downloader
+from wiki.index.downloader import Downloader
 
 
 class TestDownloader(unittest.TestCase):
-    @patch("wikirag.index.downloader.os.path.exists")
-    @patch("wikirag.index.downloader.os.makedirs")
-    @patch("wikirag.index.downloader.get_title_pathname_map")
-    @patch("wikirag.index.downloader.download_page")
-    @patch("wikirag.index.downloader.redis.Redis")
+    @patch("wiki.index.downloader.os.path.exists")
+    @patch("wiki.index.downloader.os.makedirs")
+    @patch("wiki.index.downloader.get_title_pathname_map")
+    @patch("wiki.index.downloader.download_page")
+    @patch("wiki.index.downloader.redis.Redis")
     def test_fetch_wiki_data(
         self,
         mock_redis_class,
@@ -37,7 +37,7 @@ class TestDownloader(unittest.TestCase):
         downloader = Downloader(logger, mock_redis_instance)
         category_pages_downloaded = {}
         num_pages_downloaded = downloader.fetch_wiki_data(
-            "TestCategory", "/test/path", [], category_pages_downloaded, 0
+            "TestCategory", "/test/path", [], category_pages_downloaded, 2
         )
 
         # Assertions

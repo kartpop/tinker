@@ -34,19 +34,19 @@ docker compose -f docker-compose.databases.yml down
 - ***Indexing***: Run the following from project root for downloading, chunking and indexing the wikipedia category data:
 
 ```sh
-python wikirag/index/main.py
+python wiki/index/main.py
 ```
 
 - ***RAG server***: Run the following from project root for starting the RAG API server:
 
 ```sh
-fastapi dev wikirag/rag/main.py
+fastapi dev wiki/rag/main.py
 ```
 
 Or 
 
 ```sh
-fastapi run wikirag/rag/main.py
+fastapi run wiki/rag/main.py
 ```
 
 

@@ -35,7 +35,7 @@ from lib.wiki.rag.pipelines.hybrid_pipeline import HybridPipeline
 from lib.wiki.rag.templates.phase_1_qa import phase_1_qa_template
 from lib.wiki.rag.templates.phase_2_hierarchy import phase_2_hierarchy_template
 from lib.wiki.rag.templates.phase_2_qa import phase_2_qa_template
-from wikirag.rag.question_answer_async import QuestionAnswerAsync
+from wiki.rag.question_answer_async import QuestionAnswerAsync
 from fastapi import FastAPI, HTTPException
 import aiofiles
 
