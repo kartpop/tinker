@@ -52,6 +52,23 @@ class HybridPipelineDatabaseResources:
     ):
         self.weaviate_store = weaviate_store
         self.elasticsearch_store = elasticsearch_store
+        
+    def test_connectivity(self):
+        # Test Weaviate connectivity
+        try:
+            self.weaviate_store.client.collections.list_all(simple=True)
+            logger.info("HybridPipelineDatabaseResources: Successfully connected to Weaviate.")
+        except Exception as e:
+            logger.error(f"HybridPipelineDatabaseResources: Failed to connect to Weaviate: {e}")
+            raise
+        
+        # Test Elasticsearch connectivity
+        try:
+            self.elasticsearch_store.client.info()
+            logger.info("HybridPipelineDatabaseResources: Successfully connected to Elasticsearch.")
+        except Exception as e:
+            logger.error(f"HybridPipelineDatabaseResources: Failed to connect to Elasticsearch: {e}")
+            raise
 
     def close(self):
         self.weaviate_store.client.close()
@@ -66,6 +83,24 @@ class GraphPipelineDatabaseResources:
     ):
         self.elasticsearch_store = elasticsearch_store
         self.graph_driver = graph_driver
+        
+    def test_connectivity(self):
+        # Test Elasticsearch connectivity
+        try:
+            self.elasticsearch_store.client.info()
+            logger.info("GraphPipelineDatabaseResources: Successfully connected to Elasticsearch.")
+        except Exception as e:
+            logger.error(f"GraphPipelineDatabaseResources: Failed to connect to Elasticsearch: {e}")
+            raise
+        
+        # Test Neo4j connectivity
+        try:
+            with self.graph_driver.session() as session:
+                session.run("MATCH (n) RETURN COUNT(n) AS count").single()["count"]
+            logger.info("GraphPipelineDatabaseResources: Successfully connected to Neo4j.")
+        except Exception as e:
+            logger.error(f"GraphPipelineDatabaseResources: Failed to connect to Neo4j: {e}")
+            raise
 
     def close(self):
         self.elasticsearch_store.client.close()
@@ -220,7 +255,10 @@ tracing.tracer.is_content_tracing_enabled = True
 # --------------------------------------------
 
 hybrid_pipeline, hybrid_pipeline_resources = initialize_hybrid_pipeline()
+hybrid_pipeline_resources.test_connectivity()
+
 graph_pipeline, graph_pipeline_resources = initialize_graph_pipeline()
+graph_pipeline_resources.test_connectivity()
 
 qna = QuestionAnswerAsync(
     hybrid_pipeline=hybrid_pipeline,

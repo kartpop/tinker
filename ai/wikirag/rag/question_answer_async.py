@@ -194,7 +194,14 @@ class QuestionAnswerAsync:
         }
         """
         qa_response = await self.question_answer(question)
-        answer_with_reference = await self.build_answer_with_reference(
-            qa_response["answer"], qa_response["context_docs"]
-        )
+        try:
+            answer_with_reference = await self.build_answer_with_reference(
+                qa_response["answer"], qa_response["context_docs"]
+            )
+        except Exception as e:
+            self.logger.error(f"\nError while building answer with reference: {e}")
+            self.logger.info(f"\nQuestion: {question}")
+            strip_embeddings_from_dict(qa_response)
+            self.logger.info(f"\nQA response: {json.dumps(qa_response, default=custom_serializer, indent=4)}")
+            raise
         return {"answer": answer_with_reference, "metadata": qa_response["metadata"]}
