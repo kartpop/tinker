@@ -30,29 +30,40 @@ export default function Argonk() {
 
     ws.onmessage = (event) => {
       console.log("Received message from agent:", event.data);
-    
+
       try {
         const data = JSON.parse(event.data);
         const { answer } = data;
         const { text, references } = answer;
-    
-        const formattedReferences = references.map((ref: { title: string; h2?: string; h3?: string; h4?: string }) => {
-          const { title, h2, h3, h4 } = ref;
-          const baseUrl = `https://en.wikipedia.org/wiki/${title.replace(/ /g, "_")}`;
-          let section = "";
-    
-          if (h4) {
-            section = h4.replace(/ /g, "_");
-          } else if (h3) {
-            section = h3.replace(/ /g, "_");
-          } else if (h2) {
-            section = h2.replace(/ /g, "_");
+
+        const formattedReferences = references.map(
+          (ref: { title: string; h2?: string; h3?: string; h4?: string }) => {
+            const { title, h2, h3, h4 } = ref;
+
+            // Function to strip HTML tags
+            const stripHtml = (html: string) => {
+              const doc = new DOMParser().parseFromString(html, "text/html");
+              return doc.body.textContent || "";
+            };
+
+            const baseUrl = `https://en.wikipedia.org/wiki/${stripHtml(
+              title
+            ).replace(/ /g, "_")}`;
+            let section = "";
+
+            if (h4) {
+              section = stripHtml(h4).replace(/ /g, "_");
+            } else if (h3) {
+              section = stripHtml(h3).replace(/ /g, "_");
+            } else if (h2) {
+              section = stripHtml(h2).replace(/ /g, "_");
+            }
+
+            const wikiUrl = section ? `${baseUrl}#${section}` : baseUrl;
+            return { ...ref, url: wikiUrl };
           }
-    
-          const wikiUrl = section ? `${baseUrl}#${section}` : baseUrl;
-          return { ...ref, url: wikiUrl };
-        });
-    
+        );
+
         setMessages((prevMessages) => [
           ...prevMessages,
           { src: "agent", text, refs: formattedReferences },
