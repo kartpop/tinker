@@ -1,4 +1,5 @@
 import json
+import os
 
 from nbs.agentic.lib.swarm import Swarm
 from nbs.agentic.lib.swarm.util import debug_print
@@ -35,8 +36,16 @@ def process_and_print_streaming_response(response):
             return chunk["response"]
 
 
-def pretty_print_messages(messages) -> None:
+def pretty_print_messages(messages, file_to_write=None) -> None:
     for message in messages:
+        # Log messages to file
+        if file_to_write:
+            os.makedirs(os.path.dirname(file_to_write), exist_ok=True)
+            with open(file_to_write, "a") as f:
+                sender = message["role"]
+                content = message["content"]
+                f.write(f"{sender}: {content}\n\n")
+        
         if message["role"] != "assistant":
             continue
 
@@ -59,7 +68,7 @@ def pretty_print_messages(messages) -> None:
 
 
 def run_demo_loop(
-    starting_agent, context_variables=None, stream=False, debug=False
+    starting_agent, context_variables=None, stream=False, debug=False, file_to_write=None
 ) -> None:
     client = Swarm()
     print("Starting Swarm CLI 🐝")
@@ -83,7 +92,8 @@ def run_demo_loop(
             response = process_and_print_streaming_response(response)
         else:
             # debug_print(debug, "From run_demo_loop: response.messages: ", response.messages)
-            pretty_print_messages(response.messages)
+            pretty_print_messages(response.messages, file_to_write)
+
 
         messages.extend(response.messages)
         agent = response.agent
