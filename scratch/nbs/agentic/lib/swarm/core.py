@@ -45,7 +45,7 @@ class Swarm:
             else agent.instructions
         )
         messages = [{"role": "system", "content": instructions}] + history
-        debug_print(debug, "Getting chat completion for...:", messages)
+        # debug_print(debug, "Getting chat completion for...:", messages)
 
         tools = [function_to_json(f) for f in agent.functions]
         # hide context_variables from model
@@ -94,8 +94,7 @@ class Swarm:
         debug: bool,
     ) -> Response:
         function_map = {f.__name__: f for f in functions}
-        partial_response = Response(
-            messages=[], agent=None, context_variables={})
+        partial_response = Response(messages=[], agent=None, context_variables={})
 
         for tool_call in tool_calls:
             name = tool_call.function.name
@@ -112,8 +111,7 @@ class Swarm:
                 )
                 continue
             args = json.loads(tool_call.function.arguments)
-            debug_print(
-                debug, f"Processing tool call: {name} with arguments {args}")
+            debug_print(debug, f"Processing tool call: {name} with arguments {args}")
 
             func = function_map[name]
             # pass context_variables to agent functions
@@ -133,6 +131,79 @@ class Swarm:
             partial_response.context_variables.update(result.context_variables)
             if result.agent:
                 partial_response.agent = result.agent
+
+        return partial_response
+
+    def handle_tool_calls_with_image_generation(
+        self,
+        tool_calls: List[ChatCompletionMessageToolCall],
+        functions: List[AgentFunction],
+        context_variables: dict,
+        debug: bool,
+    ) -> Response:
+        function_map = {f.__name__: f for f in functions}
+        partial_response = Response(messages=[], agent=None, context_variables={})
+
+        for tool_call in tool_calls:
+            name = tool_call.function.name
+            # handle missing tool case, skip to next tool
+            if name not in function_map:
+                debug_print(debug, f"Tool {name} not found in function map.")
+                partial_response.messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "tool_name": name,
+                        "content": f"Error: Tool {name} not found.",
+                    }
+                )
+                continue
+            args = json.loads(tool_call.function.arguments)
+            debug_print(debug, f"Processing tool call: {name} with arguments {args}")
+
+            func = function_map[name]
+            # pass context_variables to agent functions
+            if __CTX_VARS_NAME__ in func.__code__.co_varnames:
+                args[__CTX_VARS_NAME__] = context_variables
+            raw_result = function_map[name](**args)
+
+            # handle images in function results
+            if isinstance(raw_result, dict) and raw_result.get("image", False):
+                base64_image = raw_result.get("base64_image", "")
+                partial_response.messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "tool_name": name,
+                        "content": """This tool generated an image which is encapsulated in the following 'role': 'user' message""",
+                    }
+                )
+                partial_response.messages.append(
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{base64_image}"
+                                },
+                            },
+                        ],
+                    }
+                )
+            else:
+                result: Result = self.handle_function_result(raw_result, debug)
+                partial_response.messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "tool_name": name,
+                        "content": result.value,
+                    }
+                )
+                partial_response.context_variables.update(result.context_variables)
+                if result.agent:
+                    partial_response.agent = result.agent
 
         return partial_response
 
@@ -188,8 +259,7 @@ class Swarm:
                 merge_chunk(message, delta)
             yield {"delim": "end"}
 
-            message["tool_calls"] = list(
-                message.get("tool_calls", {}).values())
+            message["tool_calls"] = list(message.get("tool_calls", {}).values())
             if not message["tool_calls"]:
                 message["tool_calls"] = None
             debug_print(debug, "Received completion:", message)
@@ -259,7 +329,7 @@ class Swarm:
 
             debug_print(debug, f"Turn {i}")
             # debug_print(debug, "Current history:", history)
-            
+
             # get completion with current history, agent
             completion = self.get_chat_completion(
                 agent=active_agent,
@@ -275,7 +345,7 @@ class Swarm:
             history.append(
                 json.loads(message.model_dump_json())
             )  # to avoid OpenAI types (?)
-            
+
             # debug_print(debug, "Updated history:", history)
 
             if not message.tool_calls or not execute_tools:
@@ -290,7 +360,78 @@ class Swarm:
             context_variables.update(partial_response.context_variables)
             if partial_response.agent:
                 active_agent = partial_response.agent
-            
+
+            i += 1
+
+        return Response(
+            messages=history[init_len:],
+            agent=active_agent,
+            context_variables=context_variables,
+        )
+
+    def run_with_image_generation(
+        self,
+        agent: Agent,
+        messages: List,
+        context_variables: dict = {},
+        model_override: str = None,
+        stream: bool = False,
+        debug: bool = False,
+        max_turns: int = float("inf"),
+        execute_tools: bool = True,
+    ) -> Response:
+        if stream:
+            return self.run_and_stream(
+                agent=agent,
+                messages=messages,
+                context_variables=context_variables,
+                model_override=model_override,
+                debug=debug,
+                max_turns=max_turns,
+                execute_tools=execute_tools,
+            )
+        active_agent = agent
+        context_variables = copy.deepcopy(context_variables)
+        history = copy.deepcopy(messages)
+        init_len = len(messages)
+
+        i = 0
+        while len(history) - init_len < max_turns and active_agent:
+
+            debug_print(debug, f"Turn {i}")
+            # debug_print(debug, "Current history:", history)
+
+            # get completion with current history, agent
+            completion = self.get_chat_completion(
+                agent=active_agent,
+                history=history,
+                context_variables=context_variables,
+                model_override=model_override,
+                stream=stream,
+                debug=debug,
+            )
+            message = completion.choices[0].message
+            debug_print(debug, "Received completion:", message)
+            message.sender = active_agent.name
+            history.append(
+                json.loads(message.model_dump_json())
+            )  # to avoid OpenAI types (?)
+
+            # debug_print(debug, "Updated history:", history)
+
+            if not message.tool_calls or not execute_tools:
+                debug_print(debug, "Ending turn.")
+                break
+
+            # handle function calls, updating context_variables, and switching agents
+            partial_response = self.handle_tool_calls_with_image_generation(
+                message.tool_calls, active_agent.functions, context_variables, debug
+            )
+            history.extend(partial_response.messages)
+            context_variables.update(partial_response.context_variables)
+            if partial_response.agent:
+                active_agent = partial_response.agent
+
             i += 1
 
         return Response(
