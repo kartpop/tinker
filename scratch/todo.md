@@ -13,10 +13,9 @@
 ---------------------------------------
 
 ### Adhoc tasks
-- Agents
-    - experiment with agent types - why, how, where, when, what
-    - include wiki retrieval 
-        - include math equations type
+- get client id for imgur
+- upload image to imgur for qa with open ai
+- create image with claude 3.5 sonnet
 
 
  
