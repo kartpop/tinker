@@ -1,15 +1,16 @@
 import json
 import os
+import asyncio
 
 from nbs.agentic.lib.swarm import Swarm
 from nbs.agentic.lib.swarm.util import debug_print
 
 
-def process_and_print_streaming_response(response):
+async def process_and_print_streaming_response(response):
     content = ""
     last_sender = ""
 
-    for chunk in response:
+    async for chunk in response:
         if "sender" in chunk:
             last_sender = chunk["sender"]
 
@@ -45,7 +46,7 @@ def pretty_print_messages(messages, file_to_write=None) -> None:
                 sender = message["role"]
                 content = message["content"]
                 f.write(f"{sender}: {content}\n\n")
-        
+
         if message["role"] != "assistant":
             continue
 
@@ -67,8 +68,12 @@ def pretty_print_messages(messages, file_to_write=None) -> None:
             print(f"\033[95m{name}\033[0m({arg_str[1:-1]})")
 
 
-def run_demo_loop(
-    starting_agent, context_variables=None, stream=False, debug=False, file_to_write=None
+async def run_demo_loop(
+    starting_agent,
+    context_variables=None,
+    stream=False,
+    debug=False,
+    file_to_write=None,
 ) -> None:
     client = Swarm()
     print("Starting Swarm CLI 🐝")
@@ -80,20 +85,24 @@ def run_demo_loop(
         user_input = input("\033[90mUser\033[0m: ")
         messages.append({"role": "user", "content": user_input})
 
-        response = client.run(
-            agent=agent,
-            messages=messages,
-            context_variables=context_variables or {},
-            stream=stream,
-            debug=debug,
-        )
-
         if stream:
-            response = process_and_print_streaming_response(response)
+            response = client.run(
+                agent=agent,
+                messages=messages,
+                context_variables=context_variables or {},
+                stream=stream,
+                debug=debug,
+            )
+            response = await process_and_print_streaming_response(response)
         else:
-            # debug_print(debug, "From run_demo_loop: response.messages: ", response.messages)
+            response = await client.run(
+                agent=agent,
+                messages=messages,
+                context_variables=context_variables or {},
+                stream=stream,
+                debug=debug,
+            )
             pretty_print_messages(response.messages, file_to_write)
-
 
         messages.extend(response.messages)
         agent = response.agent

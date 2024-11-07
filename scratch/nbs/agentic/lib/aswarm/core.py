@@ -1,12 +1,12 @@
 # Standard library imports
-import copy
 import json
+import copy
+import asyncio
 from collections import defaultdict
 from typing import List, Callable, Union
 
 # Package/library imports
 from openai import OpenAI
-
 
 # Local imports
 from .util import function_to_json, debug_print, merge_chunk
@@ -29,7 +29,7 @@ class Swarm:
             client = OpenAI()
         self.client = client
 
-    def get_chat_completion(
+    async def get_chat_completion(
         self,
         agent: Agent,
         history: List,
@@ -66,9 +66,9 @@ class Swarm:
         if tools:
             create_params["parallel_tool_calls"] = agent.parallel_tool_calls
 
-        return self.client.chat.completions.create(**create_params)
+        return await self.client.chat.completions.create(**create_params)
 
-    def handle_function_result(self, result, debug) -> Result:
+    async def handle_function_result(self, result, debug) -> Result:
         match result:
             case Result() as result:
                 return result
@@ -86,7 +86,7 @@ class Swarm:
                     debug_print(debug, error_message)
                     raise TypeError(error_message)
 
-    def handle_tool_calls(
+    async def handle_tool_calls(
         self,
         tool_calls: List[ChatCompletionMessageToolCall],
         functions: List[AgentFunction],
@@ -117,9 +117,9 @@ class Swarm:
             # pass context_variables to agent functions
             if __CTX_VARS_NAME__ in func.__code__.co_varnames:
                 args[__CTX_VARS_NAME__] = context_variables
-            raw_result = function_map[name](**args)
+            raw_result = await function_map[name](**args)
 
-            result: Result = self.handle_function_result(raw_result, debug)
+            result: Result = await self.handle_function_result(raw_result, debug)
             partial_response.messages.append(
                 {
                     "role": "tool",
@@ -134,7 +134,7 @@ class Swarm:
 
         return partial_response
 
-    def run_and_stream(
+    async def run_and_stream(
         self,
         agent: Agent,
         messages: List,
@@ -166,7 +166,7 @@ class Swarm:
             }
 
             # get completion with current history, agent
-            completion = self.get_chat_completion(
+            completion = await self.get_chat_completion(
                 agent=active_agent,
                 history=history,
                 context_variables=context_variables,
@@ -176,7 +176,7 @@ class Swarm:
             )
 
             yield {"delim": "start"}
-            for chunk in completion:
+            async for chunk in completion:
                 delta = json.loads(chunk.choices[0].delta.json())
                 if delta["role"] == "assistant":
                     delta["sender"] = active_agent.name
@@ -209,7 +209,7 @@ class Swarm:
                 tool_calls.append(tool_call_object)
 
             # handle function calls, updating context_variables, and switching agents
-            partial_response = self.handle_tool_calls(
+            partial_response = await self.handle_tool_calls(
                 tool_calls, active_agent.functions, context_variables, debug
             )
             history.extend(partial_response.messages)
@@ -225,7 +225,7 @@ class Swarm:
             )
         }
 
-    def run(
+    async def run(
         self,
         agent: Agent,
         messages: List,
@@ -258,7 +258,7 @@ class Swarm:
             # debug_print(debug, "Current history:", history)
 
             # get completion with current history, agent
-            completion = self.get_chat_completion(
+            completion = await self.get_chat_completion(
                 agent=active_agent,
                 history=history,
                 context_variables=context_variables,
@@ -280,7 +280,7 @@ class Swarm:
                 break
 
             # handle function calls, updating context_variables, and switching agents
-            partial_response = self.handle_tool_calls(
+            partial_response = await self.handle_tool_calls(
                 message.tool_calls, active_agent.functions, context_variables, debug
             )
             history.extend(partial_response.messages)
@@ -295,4 +295,3 @@ class Swarm:
             agent=active_agent,
             context_variables=context_variables,
         )
-
