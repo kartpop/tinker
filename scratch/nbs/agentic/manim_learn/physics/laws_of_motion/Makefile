@@ -1,7 +1,3 @@
 anim:
-	rm -rf media/
-	manim -qh newton_first_law.py NewtonsFirstLaw
-
-anim2:
-	rm -rf media/
-	manim -qh v2_newton_first_law.py NewtonsFirstLaw
+	rm -rf media/images/$(basename $(file)) media/videos/$(basename $(file))
+	manim -qh $(file).py $(class)
