@@ -1,6 +1,6 @@
 from manim import *
 from space import *
-    
+
 
 def get_points_for_push_force_on_circle(circle: Circle, angle):
     end_point = circle.point_at_angle(angle)
@@ -10,57 +10,80 @@ def get_points_for_push_force_on_circle(circle: Circle, angle):
     start_point = end_point - force_direction
     return start_point, end_point
 
+
 def get_force_components(angle, magnitude):
     return magnitude * np.cos(angle), magnitude * np.sin(angle)
+
 
 class NewtonsFirstLaw(SpaceScene):
     GRAVITY = (0, 0)
 
     def construct(self):
-        first_law_title = Text("Newton's First Law of Motion", font="Calibri").scale(0.75).to_edge(UP)
+        first_law_title = (
+            Text("Newton's First Law of Motion", font="Calibri").scale(0.75).to_edge(UP)
+        )
         self.play(Write(first_law_title))
-        self.wait(0.5)
-        
-        circle = Circle().shift(LEFT * 1 + DOWN * 2)
+        self.wait(1)
+
+        circle = Circle().shift(LEFT * 0.5 + DOWN * 2)
         circle.set_fill(ORANGE, opacity=0.5)
 
         # Order is important; first add/play the mobject, then make rigid/static body
         self.play(Create(circle))
         self.make_rigid_body(circle)
 
-        wall = Line([5, -3.5, 0], [5, 3.5, 0])
+        wall = Line([5.5, -3.5, 0], [5.5, 3.5, 0])
         self.add(wall)
         self.make_static_body(wall)
         self.wait(1)
-        
-        first_line = Text("An object at rest will remain at rest,", font="Calibri").scale(0.5).next_to(first_law_title, 4 * DOWN).to_edge(LEFT)
+
+        first_line = (
+            Text("An object at rest will remain at rest,", font="Calibri")
+            .scale(0.5)
+            .next_to(first_law_title, 4 * DOWN)
+            .to_edge(LEFT)
+        )
         self.play(Write(first_line))
         self.wait(1)
-        
+
         # Apply push force of magninute and angle
-        angle = PI + PI/6
+        angle = PI + PI / 6
         magnitude = 2
         start_point, end_point = get_points_for_push_force_on_circle(circle, angle)
         force_x, force_y = get_force_components(angle - PI, magnitude)
         force_arrow = Arrow(start=start_point, end=end_point, buff=0)
         force_arrow.set_color(YELLOW)
-        
-        second_line = Text("unless acted upon by a force.", font="Calibri").scale(0.5).next_to(first_line, DOWN).to_edge(LEFT)
-        self.play(Create(force_arrow, lag_ratio=1), Write(second_line))
+
+        second_line = (
+            Text("unless acted upon by an external force.", font="Calibri")
+            .scale(0.5)
+            .next_to(first_line, DOWN)
+            .to_edge(LEFT)
+        )
+        self.play(Write(second_line))
+        self.wait(0.5)
+        self.play(Create(force_arrow, lag_ratio=1), run_time=0.5)
         circle.body.apply_impulse_at_local_point((force_x, force_y))
         self.wait(0.5)
-        self.play(FadeOut(force_arrow))
+        self.play(force_arrow.animate.set_color(LIGHT_GRAY).set_opacity(0.25))
 
         self.wait(1)
-        third_line = Text(
-            "An object in uniform motion will remain",
-            font="Calibri"
-        ).scale(0.5).next_to(second_line, 3 * DOWN).to_edge(LEFT)
-        third_line_b = Text(
-            "in uniform motion (moving at constant velocity),",
-            font="Calibri",
-            t2c={"uniform motion": YELLOW, "constant velocity": BLUE}
-        ).scale(0.5).next_to(third_line, DOWN).to_edge(LEFT)
+        third_line = (
+            Text("An object in uniform motion will remain", font="Calibri")
+            .scale(0.5)
+            .next_to(second_line, 3 * DOWN)
+            .to_edge(LEFT)
+        )
+        third_line_b = (
+            Text(
+                "in uniform motion (moving at constant velocity),",
+                font="Calibri",
+                t2c={"uniform motion": YELLOW, "constant velocity": BLUE},
+            )
+            .scale(0.5)
+            .next_to(third_line, DOWN)
+            .to_edge(LEFT)
+        )
         self.play(Write(third_line))
         self.play(Write(third_line_b))
 
@@ -78,7 +101,7 @@ class NewtonsFirstLaw(SpaceScene):
         #     self.remove_updater(remove_arrow)
 
         self.should_remove_arrow = False
-        
+
         # Updater to check for collision
         def check_collision(dt):
             if self.collision_occurred:
@@ -90,26 +113,44 @@ class NewtonsFirstLaw(SpaceScene):
                 self.remove_updater(check_collision)  # Stop the updater
                 self.should_remove_arrow = True
 
-                
-
         self.animation_to_play = []
         # Add the updater to the scene
         self.add_updater(check_collision)
         self.wait_until(lambda: self.should_remove_arrow)
-        self.wait(0.15)
-        
-        fourth_line = Text("unless it is made to change", font="Calibri").scale(0.5).next_to(third_line_b, DOWN).to_edge(LEFT)
-        fourth_line_b = Text("its motion by a force.", font="Calibri").scale(0.5).next_to(fourth_line, DOWN).to_edge(LEFT)
-        self.play(Write(fourth_line))
-        self.play(Write(fourth_line_b))
-        self.play(FadeOut(self.arrow))
+        self.wait(0.5)
+
+        fourth_line = (
+            Text("unless an external force changes its", font="Calibri")
+            .scale(0.5)
+            .next_to(third_line_b, DOWN)
+            .to_edge(LEFT)
+        )
+        fourth_line_b = (
+            Text(
+                "velocity - that is its speed or direction or both.",
+                font="Calibri",
+                t2c={"velocity": YELLOW, "speed": BLUE, "direction": BLUE},
+            )
+            .scale(0.5)
+            .next_to(fourth_line, DOWN)
+            .to_edge(LEFT)
+        )
+        self.play(Write(fourth_line), self.arrow.animate.set_color(LIGHT_GRAY).set_opacity(0.25))
+        self.play(
+            Write(fourth_line_b)
+        )
+        # self.play()
         # self.add_updater(remove_arrow)
         # Play the animation outside the updater
         # if self.animation_to_play:
         #     self.play(*self.animation_to_play, run_time=0.5)
+        # Stop the circle from moving
 
-        self.wait(1.5)
+
+        circle.body.velocity = (0, 0)
+        circle.body.angular_velocity = 0
         
+        self.wait(5)
 
     def collision_callback(self, arbiter, space, data):
         cps = arbiter.contact_point_set
