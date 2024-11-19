@@ -23,6 +23,7 @@ class NewtonsFirstLaw(SpaceScene):
             Text("Newton's First Law of Motion", font="Calibri").scale(0.75).to_edge(UP)
         )
         self.play(Write(first_law_title))
+        # Wait a while after each animation to let the user see the changes and absorb the information
         self.wait(1)
 
         circle = Circle().shift(LEFT * 0.5 + DOWN * 2)
@@ -32,6 +33,7 @@ class NewtonsFirstLaw(SpaceScene):
         self.play(Create(circle))
         self.make_rigid_body(circle)
 
+        # Add a wall to the right side of the screen
         wall = Line([5.5, -3.5, 0], [5.5, 3.5, 0])
         self.add(wall)
         self.make_static_body(wall)
