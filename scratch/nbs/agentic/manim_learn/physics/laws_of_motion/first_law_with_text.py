@@ -20,7 +20,7 @@ class NewtonsFirstLaw(SpaceScene):
 
     def construct(self):
         first_law_title = (
-            Text("Newton's First Law of Motion", font="Calibri").scale(0.75).to_edge(UP)
+            Text("Newton's First Law of Motion").scale(0.75).to_edge(UP)
         )
         self.play(Write(first_law_title))
         # Wait a while after each animation to let the user see the changes and absorb the information
@@ -30,7 +30,7 @@ class NewtonsFirstLaw(SpaceScene):
         circle.set_fill(ORANGE, opacity=0.5)
 
         # Order is important; first add/play the mobject, then make rigid/static body
-        self.play(Create(circle))
+        self.play(FadeIn(circle))
         self.make_rigid_body(circle)
 
         # Add a wall to the right side of the screen
@@ -40,7 +40,7 @@ class NewtonsFirstLaw(SpaceScene):
         self.wait(1)
 
         first_line = (
-            Text("An object at rest will remain at rest,", font="Calibri")
+            Text("An object at rest will remain at rest,")
             .scale(0.5)
             .next_to(first_law_title, 4 * DOWN)
             .to_edge(LEFT)
@@ -57,21 +57,21 @@ class NewtonsFirstLaw(SpaceScene):
         force_arrow.set_color(YELLOW)
 
         second_line = (
-            Text("unless acted upon by an external force.", font="Calibri")
+            Text("unless acted upon by an external force.")
             .scale(0.5)
             .next_to(first_line, DOWN)
             .to_edge(LEFT)
         )
         self.play(Write(second_line))
-        self.wait(0.5)
+        self.wait(1)
         self.play(Create(force_arrow, lag_ratio=1), run_time=0.5)
         circle.body.apply_impulse_at_local_point((force_x, force_y))
-        self.wait(0.5)
+        self.wait(1)
         self.play(force_arrow.animate.set_color(LIGHT_GRAY).set_opacity(0.25))
 
         self.wait(1)
         third_line = (
-            Text("An object in uniform motion will remain", font="Calibri")
+            Text("An object in uniform motion will remain")
             .scale(0.5)
             .next_to(second_line, 3 * DOWN)
             .to_edge(LEFT)
@@ -79,7 +79,6 @@ class NewtonsFirstLaw(SpaceScene):
         third_line_b = (
             Text(
                 "in uniform motion (moving at constant velocity),",
-                font="Calibri",
                 t2c={"uniform motion": YELLOW, "constant velocity": BLUE},
             )
             .scale(0.5)
@@ -122,7 +121,7 @@ class NewtonsFirstLaw(SpaceScene):
         self.wait(0.5)
 
         fourth_line = (
-            Text("unless an external force changes its", font="Calibri")
+            Text("unless an external force changes its")
             .scale(0.5)
             .next_to(third_line_b, DOWN)
             .to_edge(LEFT)
@@ -130,7 +129,6 @@ class NewtonsFirstLaw(SpaceScene):
         fourth_line_b = (
             Text(
                 "velocity - that is its speed or direction or both.",
-                font="Calibri",
                 t2c={"velocity": YELLOW, "speed": BLUE, "direction": BLUE},
             )
             .scale(0.5)

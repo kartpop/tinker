@@ -1,5 +1,6 @@
 from functools import partial
 from manim import *
+
 # from manim.utils.space_ops import ManimFloat
 from space import *
 
@@ -19,11 +20,31 @@ def get_points_for_push_force_on_circle(circle: Circle, angle, magnitude=1):
 class NewtonsSecondLaw(SpaceScene):
     GRAVITY = (0, 0)
 
+    # FIX arrow size
+    arrow_stroke_width = 6
+    arrow_tip_length = 0.3
+
     def construct(self):
-        second_law_title = Text("Newton's Second Law of Motion").scale(0.75).to_edge(UP)
+        
+        grid = NumberPlane(
+            x_range=[-7, 7, 1],
+            y_range=[-4, 4, 1],
+            background_line_style={
+                "stroke_opacity": 0,
+            },
+        )
+        grid.axes.set_stroke(opacity=0)
+        self.add(grid)
+        
+        # self.next_section("Second screen")
+        second_law_title = (
+            Text("Newton's Second Law of Motion").scale(0.75).move_to([0, 3.5, 0])
+        )
         self.play(Write(second_law_title))
         # Wait a while after each animation to let the user see the changes and absorb the information
         self.wait(1)
+
+        
 
         # Setup small object
         small_size = 0.4
@@ -33,16 +54,22 @@ class NewtonsSecondLaw(SpaceScene):
             .shift(LEFT * 5 + UP * 1.5)
             .scale(small_size)
         )
-        force_small = 1  # same magnitude Force applied on both objects
-        force_updater_small = lambda mob, dt: apply_force(mob, force_small, dt)
-        start_point, end_point = get_points_for_push_force_on_circle(
-            small, PI, force_small
-        )
-        force_arrow_small = Arrow(start=start_point, end=end_point, buff=0)
-        force_arrow_small.set_color(YELLOW)
-        force_arrow_updater_small = lambda arrow: update_force_arrow(
-            arrow, small, force_small
-        )
+        # force_small = 1  # same magnitude Force applied on both objects
+        # force_updater_small = lambda mob, dt: apply_force(mob, force_small, dt)
+        # start_point, end_point = get_points_for_push_force_on_circle(
+        #     small, PI, force_small
+        # )
+        # force_arrow_small = Arrow(
+        #     start=start_point,
+        #     end=end_point,
+        #     buff=0,
+        #     stroke_width=self.arrow_stroke_width,
+        #     tip_length=self.arrow_tip_length,
+        # )
+        # force_arrow_small.set_color(YELLOW)
+        # force_arrow_updater_small = lambda arrow: update_force_arrow(
+        #     arrow, small, force_small
+        # )
 
         # Setup large object
         large_size = 0.6
@@ -52,16 +79,22 @@ class NewtonsSecondLaw(SpaceScene):
             .shift(LEFT * 5 + DOWN * 0.5)
             .scale(large_size)
         )
-        force_large = 1  # same magnitude Force applied on both objects
-        force_updater_large = lambda mob, dt: apply_force(mob, force_large, dt)
-        start_point, end_point = get_points_for_push_force_on_circle(
-            large, PI, force_large
-        )
-        force_arrow_large = Arrow(start=start_point, end=end_point, buff=0)
-        force_arrow_large.set_color(YELLOW)
-        force_arrow_updater_large = lambda arrow: update_force_arrow(
-            arrow, large, force_large
-        )
+        # force_large = 1  # same magnitude Force applied on both objects
+        # force_updater_large = lambda mob, dt: apply_force(mob, force_large, dt)
+        # start_point, end_point = get_points_for_push_force_on_circle(
+        #     large, PI, force_large
+        # )
+        # force_arrow_large = Arrow(
+        #     start=start_point,
+        #     end=end_point,
+        #     buff=0,
+        #     stroke_width=self.arrow_stroke_width,
+        #     tip_length=self.arrow_tip_length,
+        # )
+        # force_arrow_large.set_color(YELLOW)
+        # force_arrow_updater_large = lambda arrow: update_force_arrow(
+        #     arrow, large, force_large
+        # )
 
         ponder_text_0a = (
             Text("Consider two bodies - one small, one large")
@@ -72,8 +105,8 @@ class NewtonsSecondLaw(SpaceScene):
         self.play(Write(ponder_text_0a))
         self.wait(0.5)
         self.play(FadeIn(small), FadeIn(large))
-        self.make_rigid_body(small, density=small_size)
-        self.make_rigid_body(large)
+        # self.make_rigid_body(small, density=small_size)
+        # self.make_rigid_body(large)
         self.wait(1)
         ponder_text_0b = (
             Text("- with the same force acting on both..")
@@ -82,40 +115,52 @@ class NewtonsSecondLaw(SpaceScene):
         )
         self.play(Write(ponder_text_0b))
         self.wait(0.5)
-        self.play(
-            Create(force_arrow_large, lag_ratio=1),
-            Create(force_arrow_small, lag_ratio=1),
-        )
+        # self.play(
+        #     Create(force_arrow_large, lag_ratio=1),
+        #     Create(force_arrow_small, lag_ratio=1),
+        # )
 
         # Apply force continuously over time in each physics step
-        def apply_force(mob, force, dt):
-            mob.body.apply_force_at_world_point((force, 0), mob.body.position)
+        # def apply_force(mob, force, dt):
+        #     mob.body.apply_force_at_world_point((force, 0), mob.body.position)
 
-        # Updater for the force arrow to keep it attached to the circle
-        def update_force_arrow(arrow, mob, force_magnitude):
-            start_point, end_point = get_points_for_push_force_on_circle(
-                mob, PI, force_magnitude
-            )
-            arrow.put_start_and_end_on(start_point, end_point)
+        # # Updater for the force arrow to keep it attached to the circle
+        # def update_force_arrow(arrow, mob, force_magnitude):
+        #     start_point, end_point = get_points_for_push_force_on_circle(
+        #         mob, PI, force_magnitude
+        #     )
+        #     arrow.put_start_and_end_on(start_point, end_point)
 
-        large.add_updater(force_updater_large)
-        force_arrow_large.add_updater(force_arrow_updater_large)
-        small.add_updater(force_updater_small)
-        force_arrow_small.add_updater(force_arrow_updater_small)
+        # large.add_updater(force_updater_large)
+        # force_arrow_large.add_updater(force_arrow_updater_large)
+        # small.add_updater(force_updater_small)
+        # force_arrow_small.add_updater(force_arrow_updater_small)
 
-        self.wait(5.5)
+        # self.wait(5.5)
 
-        # Stop simulation but keep the objects on the screen
-        large.remove_updater(force_updater_large)  # Stop applying the force
-        small.remove_updater(force_updater_small)  # Stop applying the force
-        force_arrow_large.remove_updater(
-            force_arrow_updater_large
-        )  # Remove the updater
-        force_arrow_small.remove_updater(force_arrow_updater_small)
-        self.stop_rigidity(small, large)
+        # # Stop simulation but keep the objects on the screen
+        # large.remove_updater(force_updater_large)  # Stop applying the force
+        # small.remove_updater(force_updater_small)  # Stop applying the force
+        # force_arrow_large.remove_updater(
+        #     force_arrow_updater_large
+        # )  # Remove the updater
+        # force_arrow_small.remove_updater(force_arrow_updater_small)
+        # self.stop_rigidity(small, large)
+        
+        self.fma_animation(
+            small_mass_mobject=small,
+            large_mass_mobject=large,
+            small_mass_density=small_size,
+            large_mass_density=1,
+            small_mass_force=1,
+            large_mass_force=1,
+            run_time=5.5,
+            remove_pymunk_objects=False,
+        )
 
         self.wait(3)
 
+        
         ponder_text_2 = (
             Text(
                 "- lighter ball is agile, nimble and has low inertia - speeds up quickly",
@@ -139,13 +184,6 @@ class NewtonsSecondLaw(SpaceScene):
         )
         self.play(Write(ponder_text_3))
 
-        # bullets = BulletedList(
-        #     "lighter ball is agile, nimble and has low inertia - speeds up quickly",
-        #     "heavier ball is sluggish and has high inertia - speeds up slowly",
-        #     tex_to_color_map={"low inertia": BLUE, "high inertia": BLUE, "speeds up quickly": GREEN, "speeds up slowly": GREEN},
-
-        # ).scale(0.5).next_to(large, 1.5 * DOWN).to_edge(LEFT)
-        # self.play(Write(bullets))
 
         self.wait(3)
         question_text = (
@@ -164,31 +202,62 @@ class NewtonsSecondLaw(SpaceScene):
 
         # Don't play FadeOut for mobjects having updaters, especially pymunk objects
         # Otherwise, it will throw an error - pickling/threading error
-        self.remove(small, large, force_arrow_small, force_arrow_large)
+        self.remove_mobject_if_exists(small, large)
 
         # Fadeout all other pure mobjects except the title
-        self.play(
-            *[
-                FadeOut(mob, shift=LEFT)
-                for mob in self.mobjects
-                if not mob == second_law_title
-            ]
-        )
+        # self.play(
+        #     *[
+        #         FadeOut(mob, shift=LEFT)
+        #         for mob in self.mobjects
+        #         if not mob == second_law_title
+        #     ]
+        # )
+        
+        self.play(FadeOut(ponder_text_0a), FadeOut(ponder_text_0b), FadeOut(ponder_text_2), FadeOut(ponder_text_3), FadeOut(question_text))
         self.wait(1)
 
+        
 
 # CONENIENCE CLASS FOR QUICK RENDERING DURING DEVELOPMENT
 
 
-class NewtonsSecondLawScene2(SpaceScene):
-    GRAVITY = (0, 0)
+# class NewtonsSecondLawScene2(SpaceScene):
+#     GRAVITY = (0, 0)
 
-    def construct(self):
+#     # FIX arrow size
+#     arrow_stroke_width = 6
+#     arrow_tip_length = 0.3
 
-        self.next_section("Second screen")
-        second_law_title = Text("Newton's Second Law of Motion").scale(0.75).to_edge(UP)
-        self.add(second_law_title)
-        """
+#     def construct(self):
+
+        # grid = NumberPlane(
+        #     x_range=[-7, 7, 1],
+        #     y_range=[-4, 4, 1],
+        #     background_line_style={
+        #         "stroke_opacity": 0,
+        #     },
+        # )
+        # grid.axes.set_stroke(opacity=0)
+        # self.add(grid)
+
+        # self.next_section("Second screen")
+        # second_law_title = (
+        #     Text("Newton's Second Law of Motion").scale(0.75).move_to([0, 3.5, 0])
+        # )
+        # self.add(second_law_title)
+        
+        # self.next_section("Second screen")
+        
+        # second_law_title = (
+        #     Text("Newton's Second Law of Motion").scale(0.75).move_to([0, 3.5, 0])
+        # )
+        # self.add(second_law_title)
+        # # Wait a while after each animation to let the user see the changes and absorb the information
+        # self.wait(1)
+        
+        
+        
+        
         second_law_equation = MathTex(
             r"\mathrm{Force} = \mathrm{mass} \times \mathrm{acceleration}",
             tex_to_color_map={
@@ -304,53 +373,29 @@ class NewtonsSecondLawScene2(SpaceScene):
             tip_length=0.15,
             angle=-PI / 2,  # Flip the direction of the arc
         )
+        
+        equation_annotation_group = VGroup(
+            force_tex_annotation,
+            force_tex_to_annotation_arrow,
+            mass_tex_annotation,
+            mass_tex_to_annotation_arrow,
+            acceleration_tex_annotation,
+            acceleration_tex_to_annotation_arrow,
+        )
 
         self.play(
-            FadeIn(
-                force_tex_annotation,
-                force_tex_to_annotation_arrow,
-                mass_tex_annotation,
-                mass_tex_to_annotation_arrow,
-                acceleration_tex_annotation,
-                acceleration_tex_to_annotation_arrow,
-            )
+            GrowFromPoint(equation_annotation_group, second_law_equation.get_center())
         )
-        self.wait(1)
-        """
-        # CONVENIENCE SNIPPET, REMOVE LATER
+        self.wait(2)
+        
 
-        force_tex_annotation = (
-            Text("force acting on the body")
-            .scale(0.5)
-            .next_to(second_law_title, DOWN * 5)
-            .to_edge(LEFT)
-            .set_color(YELLOW)
-        )
-
-        mass_tex_annotation = (
-            Text("body's inertia - tendency to resist change in state")
-            .scale(0.5)
-            .next_to(second_law_title, DOWN * 5)
-            .set_color(ORANGE)
-        )
-
-        acceleration_tex_annotation = (
-            Text("how fast the speed increases")
-            .scale(0.5)
-            .next_to(second_law_title, DOWN * 5)
-            .to_edge(RIGHT)
-            .set_color(GREEN)
-        )
-
-        # self.add(force_tex_annotation, mass_tex_annotation, acceleration_tex_annotation)
-
-        ## --- END SNIPPET --- ##
-
-        """
+        
         explainer_setup_text = (
             Text(
                 "Let's anchor the value of force, mass and acceleration turn by turn.",
                 line_spacing=1,
+                
+                t2c={"force": YELLOW, "mass": ORANGE, "acceleration": GREEN},
             )
             .scale(0.5)
             .next_to(force_tex_annotation, DOWN * 2)
@@ -367,78 +412,65 @@ class NewtonsSecondLawScene2(SpaceScene):
         )
 
         self.play(Write(explainer_setup_text))
-        self.wait(1)
-        self.play(Write(explainer_setup_text_2))
         self.wait(2)
+        self.play(Write(explainer_setup_text_2))
+        self.wait(3)
         self.play(FadeOut(explainer_setup_text), FadeOut(explainer_setup_text_2))
-        """
+        self.wait(1)
+
         
-        grid = NumberPlane(
-            x_range=[-7, 7, 1],
-            y_range=[-4, 4, 1],
-            background_line_style={
-                "stroke_opacity": 0,
-            }
-        )
-        grid.axes.set_stroke(opacity=0)
-        self.add(grid)
-        
+
+        # FIX PARAMETERS
+
         # x-axis
         x_force = -5
         x_mass = 0
         x_acceleration = 5
-        
+
         # y-axis
-        y_constant_annotations = 0
-        y_smalls = -1
+        y_constant_annotations = 0.5
+        y_smalls = -0.75
         y_smalls_annotations = -1.5
-        y_larges = -3
+        y_larges = -2.75
         y_larges_annotations = -3.5
-        
-        # # FIX COORDINATES SUCH THAT ALL FORCES, MASSES, ACCELERATIONS AND THEIR ANNOTATIONS ARE ALIGNED
-        # # x-axis
-        # x_force = force_tex_annotation.get_x()
-        # x_mass = mass_tex_annotation.get_x()
-        # x_acceleration = acceleration_tex_annotation.get_x()
-        # # y-axis
-        # # y_constant_annotations = force_tex_annotation.get_y() - 2
-        # # y_smalls = y_constant_annotations - 3
-        # # y_smalls_annotations = y_smalls - 1
-        # # y_larges = y_smalls - 7
-        # # y_larges_annotations = y_larges - 1
-        
-        # y_constant_annotations = force_tex_annotation.get_y() + (DOWN * 2)[1]
-        # y_smalls = y_constant_annotations + (DOWN * 3)[1]
-        # y_smalls_annotations = y_smalls + DOWN[1]
-        # y_larges = y_smalls + (DOWN * 7)[1]
-        # y_larges_annotations = y_larges + DOWN[1]
-        
+
         # FIX text size for annotations
         anno_size = 0.3
-        
-        
-        """
 
-        # CONSTANT FORCE
+
+
+        ## CONSTANT FORCE
         constant_force_text = (
             Text("Constant force")
             .scale(0.5)
-            .next_to(force_tex_annotation, DOWN * 2)
-            .to_edge(LEFT)
+            .move_to([x_force, y_constant_annotations, 0])
             .set_color(YELLOW)
         )
         self.play(FadeIn(constant_force_text))
         self.wait(2)
 
-        # Two same magnitude force arrows one below the other - below the constant_force_text, aligned to the left
+        # Two same magnitude force arrows one below the other
+        # The force names force_arrow_small and force_arrow_large are just for convenience
         force_arrow_small = (
-            Arrow(start=LEFT * 5, end=LEFT * 4, buff=0)
-            .next_to(constant_force_text, DOWN * 3)
+            Arrow(
+                start=ORIGIN,
+                end=[1, 0, 0],
+                buff=0,
+                stroke_width=self.arrow_stroke_width,
+                tip_length=self.arrow_tip_length,
+            )
+            .move_to([x_force, y_smalls, 0])
             .set_color(YELLOW)
         )
         force_arrow_large = (
-            Arrow(start=LEFT * 5, end=LEFT * 4, buff=0)
-            .next_to(force_arrow_small, DOWN * 7)
+            Arrow(
+                start=ORIGIN,
+                end=[1, 0, 0],
+                buff=0,
+                stroke_width=self.arrow_stroke_width,
+                tip_length=self.arrow_tip_length,
+            )
+            .move_to([x_force, y_larges, 0])
             .set_color(YELLOW)
         )
         self.play(Create(force_arrow_small), Create(force_arrow_large))
@@ -448,10 +480,13 @@ class NewtonsSecondLawScene2(SpaceScene):
             Circle()
             .set_fill(ORANGE, opacity=0.5)
             .scale(0.3)
-            .move_to([mass_tex_annotation.get_x(), force_arrow_small.get_y(), 0])
+            .move_to([x_mass, y_smalls, 0])
         )
         small_mass_text = (
-            Text("small mass").scale(0.3).next_to(small_mass, DOWN).set_color(ORANGE)
+            Text("small mass")
+            .scale(anno_size)
+            .move_to([x_mass, y_smalls_annotations, 0])
+            .set_color(ORANGE)
         )
         self.play(FadeIn(small_mass), Write(small_mass_text))
 
@@ -460,9 +495,8 @@ class NewtonsSecondLawScene2(SpaceScene):
             .scale(0.3)
             .move_to(
                 [
-                    (mass_tex_annotation.get_x() + acceleration_tex_annotation.get_x())
-                    / 2,
-                    small_mass_text.get_y(),
+                    (x_mass + x_acceleration) / 2,
+                    y_smalls_annotations,
                     0,
                 ]
             )
@@ -471,17 +505,19 @@ class NewtonsSecondLawScene2(SpaceScene):
 
         more_acceleration = (
             Arrow(
-                start=LEFT * 5.5, end=LEFT * 4, buff=0, stroke_width=3, tip_length=0.15
+                start=ORIGIN,
+                end=[1.75, 0, 0],
+                buff=0,
+                stroke_width=self.arrow_stroke_width,
+                tip_length=self.arrow_tip_length,
             )
-            .move_to(
-                [acceleration_tex_annotation.get_x(), force_arrow_small.get_y(), 0]
-            )
+            .move_to([x_acceleration, y_smalls, 0])
             .set_color(GREEN)
         )
         more_acceleration_text = (
             Text("more acceleration")
-            .scale(0.3)
-            .move_to([more_acceleration.get_x(), small_mass_text.get_y(), 0])
+            .scale(anno_size)
+            .move_to([x_acceleration, y_smalls_annotations, 0])
         ).set_color(GREEN)
         self.play(Create(more_acceleration), Write(more_acceleration_text))
         self.wait(2)
@@ -490,11 +526,14 @@ class NewtonsSecondLawScene2(SpaceScene):
         large_mass = (
             Circle()
             .set_fill(ORANGE, opacity=0.5)
-            .scale(0.6)
-            .move_to([mass_tex_annotation.get_x(), force_arrow_large.get_y(), 0])
+            .scale(0.5)
+            .move_to([x_mass, y_larges, 0])
         )
         large_mass_text = (
-            Text("large mass").scale(0.3).next_to(large_mass, DOWN).set_color(ORANGE)
+            Text("large mass")
+            .scale(0.3)
+            .move_to([x_mass, y_larges_annotations, 0])
+            .set_color(ORANGE)
         )
         self.play(FadeIn(large_mass), Write(large_mass_text))
 
@@ -503,9 +542,8 @@ class NewtonsSecondLawScene2(SpaceScene):
             .scale(0.3)
             .move_to(
                 [
-                    (mass_tex_annotation.get_x() + acceleration_tex_annotation.get_x())
-                    / 2,
-                    large_mass_text.get_y(),
+                    (x_mass + x_acceleration) / 2,
+                    y_larges_annotations,
                     0,
                 ]
             )
@@ -514,33 +552,26 @@ class NewtonsSecondLawScene2(SpaceScene):
 
         less_acceleration = (
             Arrow(
-                start=LEFT * 4.5, end=LEFT * 4, buff=0, stroke_width=3, tip_length=0.15
+                start=ORIGIN,
+                end=[1, 0, 0],
+                buff=0,
+                stroke_width=self.arrow_stroke_width,
+                tip_length=self.arrow_tip_length,
             )
-            .move_to(
-                [acceleration_tex_annotation.get_x(), force_arrow_large.get_y(), 0]
-            )
+            .move_to([x_acceleration, y_larges, 0])
             .set_color(GREEN)
         )
         less_acceleration_text = (
             Text("less acceleration")
-            .scale(0.3)
-            .move_to([less_acceleration.get_x(), large_mass_text.get_y(), 0])
+            .scale(anno_size)
+            .move_to([x_acceleration, y_larges_annotations, 0])
         ).set_color(GREEN)
         self.play(Create(less_acceleration), Write(less_acceleration_text))
 
         # Move the masses and forces into position for animation
-        small_mass_start_centre = [
-            force_tex_annotation.get_x(),
-            force_arrow_small.get_y(),
-            0,
-        ]
-        small_mass_shift_vector = small_mass_start_centre - small_mass.get_center()
-        large_mass_start_centre = [
-            force_tex_annotation.get_x(),
-            force_arrow_large.get_y(),
-            0,
-        ]
-        large_mass_shift_vector = large_mass_start_centre - large_mass.get_center()
+
+        small_mass_shift_vector = [x_force, y_smalls, 0] - small_mass.get_center()
+        large_mass_shift_vector = [x_force, y_larges, 0] - large_mass.get_center()
         self.play(
             FadeOut(force_arrow_small),
             FadeOut(force_arrow_large),
@@ -568,22 +599,24 @@ class NewtonsSecondLawScene2(SpaceScene):
             FadeOut(more_acceleration_text),
             FadeOut(less_acceleration_text),
         )
+
+        self.wait(2)
         
-        """
         
 
-
-        # CONSTANT MASS
+        ### CONSTANT MASS
         constant_mass_text = (
             Text("Constant mass")
             .scale(0.5)
             .move_to([x_mass, y_constant_annotations, 0])
             .set_color(ORANGE)
         )
+        self.play(FadeOut(constant_force_text))
         self.play(FadeIn(constant_mass_text))
         self.wait(1)
 
         # Two same magnitude masses one below the other
+        # Names small_mass and large_mass are just for convenience
         small_mass = (
             Circle()
             .set_fill(ORANGE, opacity=0.5)
@@ -598,16 +631,333 @@ class NewtonsSecondLawScene2(SpaceScene):
         )
         self.play(FadeIn(small_mass), FadeIn(large_mass))
         self.wait(1)
+
+        # small force causes less acceleration
+        force_arrow_small = (
+            Arrow(
+                start=ORIGIN,
+                end=[1, 0, 0],
+                buff=0,
+                stroke_width=self.arrow_stroke_width,
+                tip_length=self.arrow_tip_length,
+            )
+            .move_to([x_force, y_smalls, 0])
+            .set_color(YELLOW)
+        )
+        force_small_text = (
+            Text("small force")
+            .scale(anno_size)
+            .move_to([x_force, y_smalls_annotations, 0])
+            .set_color(YELLOW)
+        )
+        self.play(Create(force_arrow_small), Write(force_small_text))
+
+        force_small_causes_text = (
+            Text("causes")
+            .scale(anno_size)
+            .move_to(
+                [
+                    (x_mass + x_acceleration) / 2,
+                    y_smalls_annotations,
+                    0,
+                ]
+            )
+        ).set_color(BLUE)
+        self.play(Write(force_small_causes_text))
+
+        less_acceleration = (
+            Arrow(
+                start=ORIGIN,
+                end=[1, 0, 0],
+                buff=0,
+                stroke_width=self.arrow_stroke_width,
+                tip_length=self.arrow_tip_length,
+            )
+            .move_to([x_acceleration, y_smalls, 0])
+            .set_color(GREEN)
+        )
+        less_acceleration_text = (
+            Text("less acceleration")
+            .scale(anno_size)
+            .move_to([x_acceleration, y_smalls_annotations, 0])
+            .set_color(GREEN)
+        )
+        self.play(Create(less_acceleration), Write(less_acceleration_text))
+        self.wait(1)
+
+        # large force causes more acceleration
+        force_arrow_large = (
+            Arrow(
+                start=ORIGIN,
+                end=[1.75, 0, 0],
+                buff=0,
+                stroke_width=self.arrow_stroke_width,
+                tip_length=self.arrow_tip_length,
+            )
+            .move_to([x_force, y_larges, 0])
+            .set_color(YELLOW)
+        )
+        force_large_text = (
+            Text("large force")
+            .scale(anno_size)
+            .move_to([x_force, y_larges_annotations, 0])
+            .set_color(YELLOW)
+        )
+
+        self.play(Create(force_arrow_large), Write(force_large_text))
+
+        force_large_causes_text = (
+            Text("causes")
+            .scale(anno_size)
+            .move_to(
+                [
+                    (x_mass + x_acceleration) / 2,
+                    y_larges_annotations,
+                    0,
+                ]
+            )
+        ).set_color(BLUE)
+        self.play(Write(force_large_causes_text))
+
+        more_acceleration = (
+            Arrow(
+                start=ORIGIN,
+                end=[1.75, 0, 0],
+                buff=0,
+                stroke_width=self.arrow_stroke_width,
+                tip_length=self.arrow_tip_length,
+            )
+            .move_to([x_acceleration, y_larges, 0])
+            .set_color(GREEN)
+        )
+        more_acceleration_text = (
+            Text("more acceleration")
+            .scale(anno_size)
+            .move_to([x_acceleration, y_larges_annotations, 0])
+            .set_color(GREEN)
+        )
+        self.play(Create(more_acceleration), Write(more_acceleration_text))
+        self.wait(1)
+
+        # Move the masses and forces into position for animation
+        small_mass_shift_vector = [x_force, y_smalls, 0] - small_mass.get_center()
+        large_mass_shift_vector = [x_force, y_larges, 0] - large_mass.get_center()
+        self.play(
+            FadeOut(force_arrow_small),
+            FadeOut(force_arrow_large),
+            FadeOut(more_acceleration),
+            FadeOut(less_acceleration),
+            small_mass.animate.shift(small_mass_shift_vector),
+            large_mass.animate.shift(large_mass_shift_vector),
+        )
+
+        self.fma_animation(
+            small_mass_mobject=small_mass,
+            large_mass_mobject=large_mass,
+            small_mass_density=0.3,
+            large_mass_density=0.3,
+            small_mass_force=0.5,
+            large_mass_force=1.25,
+        )
+
+        # Fadeout remaining text and make scene ready for next animation
+        self.play(
+            FadeOut(force_small_text),
+            FadeOut(force_large_text),
+            FadeOut(force_small_causes_text),
+            FadeOut(force_large_causes_text),
+            FadeOut(more_acceleration_text),
+            FadeOut(less_acceleration_text),
+        )
+
+        self.wait(2)
         
+    
+        
+        ##CONSTANT ACCELERATION
+        constant_acceleration_text = (
+            Text("Constant acceleration")
+            .scale(0.5)
+            .move_to([x_acceleration, y_constant_annotations, 0])
+            .set_color(GREEN)
+        )
+        self.play(FadeOut(constant_mass_text))
+        self.play(FadeIn(constant_acceleration_text))
+        
+        self.wait(1)
+        
+        # Two same magnitude accelerations one below the other
+        # Names less_acceleration and more_acceleration are just for convenience
+        less_acceleration = (
+            Arrow(
+                start=ORIGIN,
+                end=[1, 0, 0],
+                buff=0,
+                stroke_width=self.arrow_stroke_width,
+                tip_length=self.arrow_tip_length,
+            )
+            .move_to([x_acceleration, y_smalls, 0])
+            .set_color(GREEN)
+        )
+        more_acceleration = (
+            Arrow(
+                start=ORIGIN,
+                end=[1, 0, 0],
+                buff=0,
+                stroke_width=self.arrow_stroke_width,
+                tip_length=self.arrow_tip_length,
+            )
+            .move_to([x_acceleration, y_larges, 0])
+            .set_color(GREEN)
+        )
+        self.play(Create(less_acceleration), Create(more_acceleration))
+        self.wait(1)
+        
+        # small force acting on small mass
+        force_arrow_small = (
+            Arrow(
+                start=ORIGIN,
+                end=[1, 0, 0],
+                buff=0,
+                stroke_width=self.arrow_stroke_width,
+                tip_length=self.arrow_tip_length,
+            )
+            .move_to([x_force, y_smalls, 0])
+            .set_color(YELLOW)
+        )
+        force_small_text = (
+            Text("small force")
+            .scale(anno_size)
+            .move_to([x_force, y_smalls_annotations, 0])
+            .set_color(YELLOW)
+        )
+        self.play(Create(force_arrow_small), Write(force_small_text))
+        
+        force_small_acting_on_text = (
+            Text("acting on")
+            .scale(anno_size)
+            .move_to(
+                [
+                    (x_force + x_mass) / 2,
+                    y_smalls_annotations,
+                    0,
+                ]
+            )
+        ).set_color(BLUE)
+        self.play(Write(force_small_acting_on_text))
+        
+        small_mass = (
+            Circle()
+            .set_fill(ORANGE, opacity=0.5)
+            .scale(0.3)
+            .move_to([x_mass, y_smalls, 0])
+        )
         small_mass_text = (
-            Text("small mass").scale(anno_size).move_to([x_mass, y_smalls_annotations,0]).set_color(ORANGE)
+            Text("small mass")
+            .scale(anno_size)
+            .move_to([x_mass, y_smalls_annotations, 0])
+            .set_color(ORANGE)
+        )
+        self.play(FadeIn(small_mass), Write(small_mass_text))
+        
+        self.wait(2)
+        
+        # large force acting on large mass
+        force_arrow_large = (
+            Arrow(
+                start=ORIGIN,
+                end=[1, 0, 0],
+                buff=0,
+                stroke_width=self.arrow_stroke_width,
+                tip_length=self.arrow_tip_length,
+            )
+            .move_to([x_force, y_larges, 0])
+            .set_color(YELLOW)
+        )
+        force_large_text = (
+            Text("large force")
+            .scale(anno_size)
+            .move_to([x_force, y_larges_annotations, 0])
+            .set_color(YELLOW)
+        )
+        self.play(Create(force_arrow_large), Write(force_large_text))
+        
+        force_large_acting_on_text = (
+            Text("acting on")
+            .scale(anno_size)
+            .move_to(
+                [
+                    (x_force + x_mass) / 2,
+                    y_larges_annotations,
+                    0,
+                ]
+            )
+        ).set_color(BLUE)
+        self.play(Write(force_large_acting_on_text))
+        
+        large_mass = (
+            Circle()
+            .set_fill(ORANGE, opacity=0.5)
+            .scale(0.5)
+            .move_to([x_mass, y_larges, 0])
         )
         large_mass_text = (
-            Text("large mass").scale(anno_size).move_to([x_mass, y_larges_annotations,0]).set_color(ORANGE)
+            Text("large mass")
+            .scale(anno_size)
+            .move_to([x_mass, y_larges_annotations, 0])
+            .set_color(ORANGE)
         )
-        self.play(Write(small_mass_text), Write(large_mass_text))
+        self.play(FadeIn(large_mass), Write(large_mass_text))
         
-        # small force causes more acceleration
+        # Move the masses and forces into position for animation
+        small_mass_shift_vector = [x_force, y_smalls, 0] - small_mass.get_center()
+        large_mass_shift_vector = [x_force, y_larges, 0] - large_mass.get_center()
+        self.play(
+            FadeOut(force_arrow_small),
+            FadeOut(force_arrow_large),
+            small_mass.animate.shift(small_mass_shift_vector),
+            large_mass.animate.shift(large_mass_shift_vector),
+        )
+        
+        self.fma_animation(
+            small_mass_mobject=small_mass,
+            large_mass_mobject=large_mass,
+            small_mass_density=0.3,
+            large_mass_density=0.6,
+            small_mass_force=0.5,
+            large_mass_force=1,
+        )
+        
+        # Fadeout remaining text and make scene ready for next animation
+        self.play(
+            FadeOut(force_small_text),
+            FadeOut(force_large_text),
+            FadeOut(force_small_acting_on_text),
+            FadeOut(force_large_acting_on_text),
+            FadeOut(small_mass_text),
+            FadeOut(large_mass_text),
+            FadeOut(less_acceleration),
+            FadeOut(more_acceleration),
+            FadeOut(constant_acceleration_text) 
+        )
+        
+        self.wait(2)
+        
+        
+        
+        final_text = (
+            Text(
+            "That's the gist of Newton's second law of motion.",
+            line_spacing=1,
+            )
+            .scale(0.5)
+            .move_to([-6.5, 0, 0], aligned_edge=LEFT)
+        )
+
+        self.play(Write(final_text))
+        self.wait(3)
+        
+        
 
     def fma_animation(
         self,
@@ -618,56 +968,35 @@ class NewtonsSecondLawScene2(SpaceScene):
         small_mass_force,
         large_mass_force,
         run_time=4,
+        remove_pymunk_objects=True,
     ):
-        # if condition == "constant_force":
-        #     force_small = 1
-        #     force_large = 1
-        #     size_small = 0.3
-        #     size_large = 0.6
-        # elif condition == "constant_mass":
-        #     force_small = 0.5
-        #     force_large = 1
-        #     size_small = 0.3
-        #     size_large = 0.3
-        # elif condition == "constant_acceleration":
-        #     force_small = 1
-        #     force_large = 2
-        #     size_small = 0.3
-        #     size_large = 0.6
-
-        # Setup small object
-        # small_size = 0.4
-        # small = (
-        #     Circle()
-        #     .set_fill(ORANGE, opacity=0.5)
-        #     .shift(LEFT * 5 + UP * 1.5)
-        #     .scale(small_size)
-        # )
-        # force_small = 1  # same magnitude Force applied on both objects
         force_updater_small = lambda mob, dt: apply_force(mob, small_mass_force, dt)
         start_point, end_point = get_points_for_push_force_on_circle(
             small_mass_mobject, PI, small_mass_force
         )
-        force_arrow_small = Arrow(start=start_point, end=end_point, buff=0)
+        force_arrow_small = Arrow(
+            start=start_point,
+            end=end_point,
+            buff=0,
+            stroke_width=self.arrow_stroke_width,
+            tip_length=self.arrow_tip_length,
+        )
         force_arrow_small.set_color(YELLOW)
         force_arrow_updater_small = lambda arrow: update_force_arrow(
             arrow, small_mass_mobject, small_mass_force
         )
 
-        # Setup large object
-        # large_size = 0.6
-        # large = (
-        #     Circle()
-        #     .set_fill(ORANGE, opacity=0.5)
-        #     .shift(LEFT * 5 + DOWN * 0.5)
-        #     .scale(large_size)
-        # )
-        # force_large = 1  # same magnitude Force applied on both objects
         force_updater_large = lambda mob, dt: apply_force(mob, large_mass_force, dt)
         start_point, end_point = get_points_for_push_force_on_circle(
             large_mass_mobject, PI, large_mass_force
         )
-        force_arrow_large = Arrow(start=start_point, end=end_point, buff=0)
+        force_arrow_large = Arrow(
+            start=start_point,
+            end=end_point,
+            buff=0,
+            stroke_width=self.arrow_stroke_width,
+            tip_length=self.arrow_tip_length,
+        )
         force_arrow_large.set_color(YELLOW)
         force_arrow_updater_large = lambda arrow: update_force_arrow(
             arrow, large_mass_mobject, large_mass_force
@@ -704,19 +1033,27 @@ class NewtonsSecondLawScene2(SpaceScene):
         large_mass_mobject.remove_updater(
             force_updater_large
         )  # Stop applying the force
-        small_mass_mobject.remove_updater(
-            force_updater_small
-        )  # Stop applying the force
         force_arrow_large.remove_updater(
             force_arrow_updater_large
         )  # Remove the updater
+        small_mass_mobject.remove_updater(
+            force_updater_small
+        )  # Stop applying the force
         force_arrow_small.remove_updater(force_arrow_updater_small)
-        self.stop_rigidity(small_mass_mobject, large_mass_mobject)
+        # self.stop_rigidity(small_mass_mobject, large_mass_mobject)
+        
 
         self.wait(2)
 
-        # Don't play FadeOut for mobjects having updaters, especially pymunk objects
-        # Otherwise, it will throw an error - pickling/threading error
-        self.remove(
-            small_mass_mobject, large_mass_mobject, force_arrow_small, force_arrow_large
-        )
+        self.remove_mobject_if_exists(force_arrow_small, force_arrow_large)
+        if remove_pymunk_objects:
+            # Don't play FadeOut for mobjects having updaters, especially pymunk objects
+            # Otherwise, it will throw an error - pickling/threading error
+            self.remove_mobject_if_exists(
+                small_mass_mobject, large_mass_mobject 
+            )
+    
+    def remove_mobject_if_exists(self, *mobjects):
+        for mobject in mobjects:
+            if mobject in self.mobjects:
+                self.remove(mobject)
