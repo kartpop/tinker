@@ -39,6 +39,14 @@ class SpaceScene(Scene):
         if body.body != self.space.space.static_body:
             self.space.space.add(body.body)
         self.space.space.add(body.shape)
+        
+    def remove_body(self, body: Mobject):
+        """Bodies refer to pymunk's object.
+        This method removes Mobjects from the space.
+        """
+        if body.body != self.space.space.static_body:
+            self.space.space.remove(body.body)
+        self.space.space.remove(body.shape)
 
     def make_rigid_body(
         self,
@@ -108,13 +116,15 @@ class SpaceScene(Scene):
             mob.shape.collision_type = collision_type
             self.add_body(mob)
 
-    def stop_rigidity(self, *mobs: Mobject) -> None:
+    def stop_rigidity(self, *mobs: Mobject, remove_from_pymunk_space: bool=True) -> None:
         """Stop the mobjects rigidity"""
         for mob in mobs:
             if isinstance(mob, VGroup or Group):
                 self.stop_rigidity(*mob)
             if hasattr(mob, "body"):
                 mob.body.sleep()
+                if remove_from_pymunk_space:
+                    self.remove_body(mob)
                 
     def add_collision_handler(self, collision_callback, collision_type_a: int = 0, collision_type_b: int = 1):
         """Add a collision handler to the space"""

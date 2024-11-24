@@ -147,7 +147,7 @@ class NewtonsSecondLaw(SpaceScene):
         # force_arrow_small.remove_updater(force_arrow_updater_small)
         # self.stop_rigidity(small, large)
         
-        self.fma_animation(
+        mobjects_to_remove = self.fma_animation(
             small_mass_mobject=small,
             large_mass_mobject=large,
             small_mass_density=small_size,
@@ -202,7 +202,8 @@ class NewtonsSecondLaw(SpaceScene):
 
         # Don't play FadeOut for mobjects having updaters, especially pymunk objects
         # Otherwise, it will throw an error - pickling/threading error
-        self.remove_mobject_if_exists(small, large)
+        # self.remove_mobject_if_exists(mobjects_to_remove)
+        self.remove(small, large)
 
         # Fadeout all other pure mobjects except the title
         # self.play(
@@ -289,13 +290,13 @@ class NewtonsSecondLaw(SpaceScene):
         # Annotate Force
         force_tex_brace = Brace(force_tex, DOWN, stroke_width=0.15)
         force_tex_annotation = (
-            force_tex_brace.get_text("force acting on the body", buff=0.1)
-            .scale(0.5)
+            force_tex_brace.get_text("force acting externally on the body", buff=0.1)
+            .scale(0.7)
             .set_color(YELLOW)
         )
         self.play(GrowFromCenter(force_tex_brace))
         self.play(Write(force_tex_annotation, shift=UP))
-        self.wait(1)
+        self.wait(2)
         self.play(FadeOut(force_tex_brace), FadeOut(force_tex_annotation))
 
         # Annotate mass
@@ -305,7 +306,7 @@ class NewtonsSecondLaw(SpaceScene):
                 "body's inertia - tendency to resist change in state",
                 buff=0.1,
             )
-            .scale(0.5)
+            .scale(0.7)
             .set_color(ORANGE)
         )
         self.play(GrowFromCenter(mass_tex_brace))
@@ -317,15 +318,15 @@ class NewtonsSecondLaw(SpaceScene):
         acceleration_tex_brace = Brace(acceleration_tex, DOWN)
         acceleration_tex_annotation = (
             acceleration_tex_brace.get_text("how fast the speed increases", buff=0.1)
-            .scale(0.5)
+            .scale(0.7)
             .set_color(GREEN)
         )
         self.play(GrowFromCenter(acceleration_tex_brace))
         self.play(Write(acceleration_tex_annotation, shift=UP))
-        self.wait(3)
+        self.wait(2)
         acceleration_disclaimer_text = (
             Text("(not entirely accurate, but works for now!)", slant=ITALIC)
-            .scale(0.3)
+            .scale(0.4)
             .set_stroke(width=0.3)
             .set_color(GREEN)
             .next_to(acceleration_tex_annotation, DOWN, buff=0.1)
@@ -341,6 +342,8 @@ class NewtonsSecondLaw(SpaceScene):
             FadeOut(acceleration_disclaimer_text),
         )
         self.wait(1)
+
+        """
 
         # Move force, mass and acceleration explainer texts to the left edge, centered and right edge respectively
 
@@ -388,7 +391,7 @@ class NewtonsSecondLaw(SpaceScene):
         )
         self.wait(2)
         
-
+        """
         
         explainer_setup_text = (
             Text(
@@ -428,14 +431,14 @@ class NewtonsSecondLaw(SpaceScene):
         x_acceleration = 5
 
         # y-axis
-        y_constant_annotations = 0.5
-        y_smalls = -0.75
-        y_smalls_annotations = -1.5
-        y_larges = -2.75
-        y_larges_annotations = -3.5
+        y_constant_annotations = 1.5
+        y_smalls = 0
+        y_smalls_annotations = -0.75
+        y_larges = -2.25
+        y_larges_annotations = -3.25
 
         # FIX text size for annotations
-        anno_size = 0.3
+        anno_size = 0.4
 
 
 
@@ -492,7 +495,7 @@ class NewtonsSecondLaw(SpaceScene):
 
         small_mass_experiences = (
             Text("experiences")
-            .scale(0.3)
+            .scale(anno_size)
             .move_to(
                 [
                     (x_mass + x_acceleration) / 2,
@@ -531,7 +534,7 @@ class NewtonsSecondLaw(SpaceScene):
         )
         large_mass_text = (
             Text("large mass")
-            .scale(0.3)
+            .scale(anno_size)
             .move_to([x_mass, y_larges_annotations, 0])
             .set_color(ORANGE)
         )
@@ -539,7 +542,7 @@ class NewtonsSecondLaw(SpaceScene):
 
         large_mass_experiences = (
             Text("experiences")
-            .scale(0.3)
+            .scale(anno_size)
             .move_to(
                 [
                     (x_mass + x_acceleration) / 2,
@@ -598,9 +601,10 @@ class NewtonsSecondLaw(SpaceScene):
             FadeOut(large_mass_experiences),
             FadeOut(more_acceleration_text),
             FadeOut(less_acceleration_text),
+            FadeOut(constant_force_text)
         )
 
-        self.wait(2)
+        # self.wait(1)
         
         
 
@@ -611,7 +615,6 @@ class NewtonsSecondLaw(SpaceScene):
             .move_to([x_mass, y_constant_annotations, 0])
             .set_color(ORANGE)
         )
-        self.play(FadeOut(constant_force_text))
         self.play(FadeIn(constant_mass_text))
         self.wait(1)
 
@@ -768,6 +771,7 @@ class NewtonsSecondLaw(SpaceScene):
             FadeOut(force_large_causes_text),
             FadeOut(more_acceleration_text),
             FadeOut(less_acceleration_text),
+            FadeOut(constant_mass_text)
         )
 
         self.wait(2)
@@ -781,7 +785,6 @@ class NewtonsSecondLaw(SpaceScene):
             .move_to([x_acceleration, y_constant_annotations, 0])
             .set_color(GREEN)
         )
-        self.play(FadeOut(constant_mass_text))
         self.play(FadeIn(constant_acceleration_text))
         
         self.wait(1)
@@ -1040,7 +1043,7 @@ class NewtonsSecondLaw(SpaceScene):
             force_updater_small
         )  # Stop applying the force
         force_arrow_small.remove_updater(force_arrow_updater_small)
-        # self.stop_rigidity(small_mass_mobject, large_mass_mobject)
+        self.stop_rigidity(small_mass_mobject, large_mass_mobject)
         
 
         self.wait(2)
@@ -1050,8 +1053,10 @@ class NewtonsSecondLaw(SpaceScene):
             # Don't play FadeOut for mobjects having updaters, especially pymunk objects
             # Otherwise, it will throw an error - pickling/threading error
             self.remove_mobject_if_exists(
-                small_mass_mobject, large_mass_mobject 
+                small_mass_mobject, large_mass_mobject, force_arrow_small, force_arrow_large
             )
+        else: # return mojects to be removed later
+            return small_mass_mobject, large_mass_mobject, force_arrow_small, force_arrow_large
     
     def remove_mobject_if_exists(self, *mobjects):
         for mobject in mobjects:
