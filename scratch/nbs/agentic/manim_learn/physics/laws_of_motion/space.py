@@ -124,7 +124,18 @@ class SpaceScene(Scene):
             if hasattr(mob, "body"):
                 mob.body.sleep()
                 if remove_from_pymunk_space:
+                    # Remove the mobject from the pymunk space and any pymunk references from the mobject
                     self.remove_body(mob)
+                    mob.shape = None # Remove the pymunk shape from the mobject
+                    mob.body = None # Remove the pymunk body from the mobject
+                    mob.remove_updater(_simulate)
+    
+    def remove_and_replace(self, mob: Mobject) -> Mobject:
+        """Remove the mobjects from the scene and replace them with an identical new mobject. Effects such as FadeOut don't work on orignal mobjects"""
+        new_mob = mob.copy()
+        self.remove(mob)
+        self.add(new_mob)
+        return new_mob
                 
     def add_collision_handler(self, collision_callback, collision_type_a: int = 0, collision_type_b: int = 1):
         """Add a collision handler to the space"""
