@@ -10,10 +10,11 @@
 - Create embedder with metadata_fields_to_embed
 
 
----------------------------------------
-
 ### Adhoc tasks
 
+# IDEAS
+
+## Create complete manim explanatory videos using only a science concept text as input - PAUSED
 - Test out LLM's capabilities in writing Manim code with few-shot learning
     - Create 3-5 example animations/diagrams in rigid body motion (say)
     - Prompt model to create a new animation/diagram in similar field to test how it works
@@ -34,5 +35,24 @@
         - Create a custom finetuned model on animation data (once corpus reaches a few 10,000 datasets)
 
 
+## Create manim videos iteratively using natural language - ABANDONED (already exists)
+- Example: 'create a circle', 'make it a rigid body', 'apply a force on it from the left and let the animation play for 3 seconds', 'create a wall on the right', 'move it more to the right', 'run animation for 5 seconds'
 
- 
+- Steps
+    - hand curate the above example
+        - start with zero context to the LLM (assume initial instruction to be trivial)
+        - on subsequent prompts, enrich context with appropriate low level instructions; for example, provide relevant code snippet when user instruction is 'apply a force on it from the left'
+        - for starter, append the entire code till present instance as context along with above enriched context
+            - later, think about how we can provide just the required code (not the entire file) along with low level instruction 
+
+## Literature research assistant
+- Use a local corpus of downloaded research papers of a specific topic to answer useful questions
+
+- Stage 1:
+    - General text, image, table, mathematical formula parsing to create index
+    - Chat and artifacts panel in UI
+        - artifacts panel can be used to display relevant images, tables (non plain-text) data from papers
+
+- Stage 2:
+    - Focus on a specific topic (say DNA nanotechnology or Molecular machines)
+        - Make a narrow but very useful agent which does a bunch of tasks well in that specific domain using data from the papers
