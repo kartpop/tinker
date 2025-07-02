@@ -1,6 +1,6 @@
 
 
-# Tinker: A Multi-Modal RAG Exploration Platform
+# Tinker: A Multi-stage RAG Exploration Platform
 
 Tinker is a full-stack application designed to explore advanced concepts in Retrieval-Augmented Generation (RAG). It features a two-stage, multi-hop RAG pipeline that leverages a hybrid of search techniques (keyword, semantic, and graph-based) to answer complex questions about a large corpus of data—in this case, a subset of Wikipedia.
 
